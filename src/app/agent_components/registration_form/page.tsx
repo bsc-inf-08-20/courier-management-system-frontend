@@ -44,7 +44,7 @@ const AgentRegistration = () => {
           validationSchema={validationSchema}
           onSubmit={(values) => {
             console.log('Form Data:', values);
-            router.push('/next-page'); // Navigate to next page
+            router.push('/agent_components/final_registration'); // Navigate to next page
           }}
         >
           {({ isValid, dirty }) => (

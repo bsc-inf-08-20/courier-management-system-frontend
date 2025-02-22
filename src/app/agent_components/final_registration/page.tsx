@@ -151,10 +151,19 @@ const AgentFinalRegistration = () => {
               </div>
 
               {/* Submit Button */}
-              <div className="flex justify-end mt-4">
+              <div className="flex justify-between mt-4">
+
+                 <button
+                   type="button"
+                   onClick={() => router.push("/agent_components/registration_form")}
+                   className="flex items-center py-2 px-6 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+                >
+                    ← Previous
+                </button>
                 <button
-                  type="submit"
-                  disabled={!isValid || !dirty}
+
+                type="submit"
+                disabled={!isValid || !dirty}
                   className={`py-2 px-6 rounded-md w-full sm:w-auto ${
                     !isValid || !dirty
                       ? "bg-gray-400 cursor-not-allowed"
