@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 
 const validationSchema = Yup.object({
   firstName: Yup.string().required('First Name is required'),
-  middleName: Yup.string(), // Optional field
+  middleName: Yup.string(), 
   sirName: Yup.string().required('Surname is required'),
   phoneNumber: Yup.string()
     .matches(/^\d+$/, 'Phone number must be digits only')
@@ -43,7 +43,8 @@ const AgentRegistration = () => {
           }}
           validationSchema={validationSchema}
           onSubmit={(values) => {
-            console.log('Form Data:', values);
+            // Save the first form data in localStorage
+            localStorage.setItem('registrationData', JSON.stringify(values));
             router.push('/agent_components/final_registration'); // Navigate to next page
           }}
         >
