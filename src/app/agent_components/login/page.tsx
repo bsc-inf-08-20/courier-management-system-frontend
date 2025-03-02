@@ -77,7 +77,7 @@ const LoginPage = () => {
           </button>
         </form>
         <p className="text-center mt-4 text-black">
-          Don't have an account? <Link href="/register" className="text-blue-600 hover:underline">Register here</Link>
+          Don't have an account? <Link href="/agent_components/registration_form" className="text-blue-600 hover:underline">Register here</Link>
         </p>
       </div>
     </div>
