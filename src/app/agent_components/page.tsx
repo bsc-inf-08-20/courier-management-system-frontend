@@ -1,4 +1,4 @@
-export default function Admin() {
+export default function Agent() {
   return (
     <div>
       <h1>

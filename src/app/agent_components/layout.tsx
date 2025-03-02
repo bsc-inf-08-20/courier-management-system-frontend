@@ -22,7 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function AdminLayout({
+export default function AgentLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -32,15 +32,15 @@ export default function AdminLayout({
 
   // Define navigation items
   const navItems = [
-    { href: "/admin", icon: Box, title: "Overview" },
+    { href: "/agent_components", icon: Box, title: "Overview" },
     {
-      href: "/admin/book-pickup-requests",
+      href: "/agent_components/confirm_pickup",
       icon: Truck,
-      title: "Book Pickup Requests",
+      title: "Comfirm",
     },
-    { href: "/admin/customers", icon: Users, title: "Customers" },
-    { href: "/admin/packages", icon: Package, title: "Packages" },
-    { href: "/admin/agents", icon: Users, title: "Agents" },
+    { href: "/agent_components/final_registration", icon: Users, title: "final_registration" },
+    // { href: "/admin/packages", icon: Package, title: "Packages" },
+    // { href: "/admin/agents", icon: Users, title: "Agents" },
   ];
 
   // Find the current page title based on the pathname
@@ -48,7 +48,7 @@ export default function AdminLayout({
   const pageTitle = currentPage ? currentPage.title : "Admin Dashboard"; // Fallback title
 
   return (
-    <div className="flex h-screen">
+    <div className="w-full flex h-screen">
       {/* Sidebar */}
       <aside
         className={`fixed top-0 left-0 h-full bg-white shadow-md border-r flex flex-col 
