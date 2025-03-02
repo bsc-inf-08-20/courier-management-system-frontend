@@ -36,9 +36,11 @@ export default function AgentLayout({
     {
       href: "/agent_components/confirm_pickup",
       icon: Truck,
-      title: "Comfirm",
+      title: "Comfirm pickup",
     },
-    { href: "/agent_components/final_registration", icon: Users, title: "final_registration" },
+    { href: "/agent_components/monthly_report", 
+      icon: Users, 
+      title: "monthly report" },
     // { href: "/admin/packages", icon: Package, title: "Packages" },
     // { href: "/admin/agents", icon: Users, title: "Agents" },
   ];
@@ -104,9 +106,9 @@ export default function AgentLayout({
                     sidebarOpen ? "block" : "hidden"
                   }`}
                 >
-                  <span className="text-sm font-medium">Austin Munthali</span>
+                  <span className="text-sm font-medium">Wedson Chilenga</span>
                   <span className="text-xs text-gray-500">
-                    austin@example.com
+                    wedsonchilenga@example.com
                   </span>
                 </div>
               </button>

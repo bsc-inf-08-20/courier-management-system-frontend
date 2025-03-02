@@ -43,7 +43,7 @@ const AgentPage = () => {
   return (
     <div className="w-full min-h-screen flex items-center justify-center bg-gray-100">
   <div className="w-full max-w-lg bg-white p-8 rounded-lg shadow-lg">
-    <h2 className="text-2xl font-semibold text-center mb-6">Agent Pickup Form</h2>
+    <h2 className="text-2xl font-semibold text-center mb-6">Agent Pickup</h2>
     {error && <div className="text-red-500 text-center mb-4">{error}</div>}
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
@@ -79,7 +79,7 @@ const AgentPage = () => {
           Weight of Goods (kg)
         </label>
         <input
-          type="number"
+          type="double"
           id="weight"
           name="weight"
           value={weight}
