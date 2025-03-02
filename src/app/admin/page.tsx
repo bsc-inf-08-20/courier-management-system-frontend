@@ -1,7 +1,12 @@
 export default function Admin() {
-    return (
-      <div>
-        <h1>Admin</h1>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <h1>
+        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Perspiciatis,
+        eligendi quo eaque, earum, dolorum labore nobis ab doloremque voluptatum
+        quis minima esse eos dignissimos voluptatibus sunt modi possimus.
+        Expedita, pariatur?
+      </h1>
+    </div>
+  );
+}
