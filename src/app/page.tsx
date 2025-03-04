@@ -37,7 +37,7 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/tracking">
-              <Button size="lg" variant="outline" className="text-white border-white">
+              <Button size="lg" variant="outline" className="text-black border-white">
                 Track Package
               </Button>
             </Link>
