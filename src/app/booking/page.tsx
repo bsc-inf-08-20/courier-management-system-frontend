@@ -1,11 +1,13 @@
 'use client'
+import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import Link from "next/link";
 import { useState } from "react";
 import { Package, Truck } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link";
 
 export default function Booking() {
   // Form state
@@ -19,31 +21,55 @@ export default function Booking() {
     pickupTime: "",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   // Handle input changes
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    if (!formData.packageType) newErrors.packageType = "Package type is required";
+    if (!formData.pickupLocation) newErrors.pickupLocation = "Pick-up location is required";
+    if (!formData.deliveryLocation) newErrors.deliveryLocation = "Delivery location is required";
+    if (formData.pickupOption === "agent" && !formData.pickupTime)
+      newErrors.pickupTime = "Pick-up time is required";
+    return newErrors;
+  };
+  
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Simulate API call or redirect
+    const validationErrors = validateForm();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
+      return;
+    }
     console.log("Booking Submitted:", formData);
-    alert("Booking confirmed! Booking ID: #12345"); // Placeholder for real logic
+    setIsSubmitted(true);
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="w-full bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-800">Malawi Courier</h1>
-          <Link href="/">
-            <Button variant="outline">Back to Home</Button>
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex flex-col">
+        <Navbar />
+        <main className="flex-grow max-w-2xl mx-auto px-4 py-8 text-center">
+          <h2 className="text-3xl font-bold text-green-600 mb-6">Booking Confirmed!</h2>
+          <p>Your booking ID is #12345. You’ll receive a confirmation soon.</p>
+          <Link href="/tracking">
+            <Button className="mt-4">Track Your Package</Button>
           </Link>
-        </div>
-      </header>
+        </main>
+      </div>
+    );
+  }
 
+  return (
+    <div>
+      <Navbar/>
       {/* Booking Form */}
       <main className="flex-grow max-w-2xl mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">Book a Courier</h2>
