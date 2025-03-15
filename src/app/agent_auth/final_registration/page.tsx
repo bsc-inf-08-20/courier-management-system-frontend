@@ -62,7 +62,7 @@ const AgentFinalRegistration = () => {
     <div className="min-h-screen p-6 bg-gray-100 flex flex-col justify-center items-center w-full">
       <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-4xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-4 text-black">
-          Complete Your Registration
+          Complete Your Application
         </h2>
         <Formik
           initialValues={{
@@ -89,10 +89,28 @@ const AgentFinalRegistration = () => {
                       setFieldValue("nationalId", file);
                     }
                   }}
-                  className="border p-2 rounded-md bg-white text-black"
+                  className="border-2 border-black p-2 rounded-md bg-white text-black"
                 />
                 <ErrorMessage name="nationalId" component="div" className="text-red-500 text-sm" />
               </div>
+                
+
+                {/* National ID Upload */}
+                <div className="flex flex-col">
+                <label className="text-black font-medium">Upload Driver's License Photo</label>
+                <input
+                type="file"
+                accept="image/jpeg, image/png, image/jpg"
+                onChange={(event) => {
+                const file = event.currentTarget.files?.[0];
+                if (file) {
+                setFieldValue("driversLicense", file);
+             }
+           }}
+            className="border-2 border-black p-2 rounded-md bg-white text-black"
+          />
+          <ErrorMessage name="driversLicense" component="div" className="text-red-500 text-sm" />
+          </div>
 
               {/* Vehicle Ownership Question */}
               <div className="flex flex-col">
@@ -119,7 +137,7 @@ const AgentFinalRegistration = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col">
                     <label className="text-black font-medium">Type of Vehicle</label>
-                    <Field name="vehicleType" className="border p-2 rounded-md text-black" />
+                    <Field name="vehicleType" className="border-2 border-black p-2 rounded-md text-black" />
                     <ErrorMessage name="vehicleType" component="div" className="text-red-500 text-sm" />
                   </div>
                   <div className="flex flex-col">
@@ -130,7 +148,7 @@ const AgentFinalRegistration = () => {
                       inputMode="numeric"
                       pattern="[0-9]*"
                       onChange={(e: any) => setFieldValue("vehicleNumber", e.target.value.replace(/\D/g, ""))}
-                      className="border p-1 rounded-md text-black w-20"
+                      className="border-2 border-black p-1 rounded-md text-black w-20"
                     />
                     <ErrorMessage name="vehicleNumber" component="div" className="text-red-500 text-sm" />
                   </div>
@@ -143,7 +161,7 @@ const AgentFinalRegistration = () => {
                 <Field
                   as="textarea"
                   name="personalDescription"
-                  className="border p-2 rounded-md text-black"
+                  className="border-2 border-black p-2 rounded-md text-black"
                   rows={4}
                   maxLength={200}
                 />

@@ -17,6 +17,9 @@ type AgentProfile = {
   homeResidence: string;
   permanentAddress: string;
   profileImage: string;
+  nextOfKinFullName: string;
+  nextOfKinContactDetails: string;
+  nextOfKinPhysicleAddres:string;
 };
 
 const ProfilePage = () => {
@@ -75,7 +78,11 @@ const ProfilePage = () => {
               <p><strong>Phone:</strong> {user?.phone}</p>
               <p><strong>Home Residence:</strong> {user?.homeResidence}</p>
               <p><strong>Permanent Address:</strong> {user?.permanentAddress}</p>
-              <p><strong>Town/City of Residence:</strong>{user?.residenceHomeTown}</p>
+              <p><strong>Physical Address:</strong>{user?.residenceHomeTown}</p>
+
+              <p><strong>Next of Kin Name:</strong> {user?.nextOfKinFullName}</p>
+              <p><strong>Next of Kin Mobile Number:</strong>{user?.nextOfKinContactDetails}</p>
+              <p><strong>Next of Kin Physical Address:</strong>{user?.nextOfKinPhysicleAddres}</p>
             </>
           )}
         </CardContent>
