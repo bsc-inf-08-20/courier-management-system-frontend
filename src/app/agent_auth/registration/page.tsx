@@ -45,7 +45,7 @@ const AgentRegistration = () => {
           onSubmit={(values) => {
             // Save the first form data in localStorage
             localStorage.setItem('registrationData', JSON.stringify(values));
-            router.push('/agent_components/final_registration'); // Navigate to next page
+            router.push('/agent_auth/final_registration'); // Navigate to next page
           }}
         >
           {({ isValid, dirty }) => (

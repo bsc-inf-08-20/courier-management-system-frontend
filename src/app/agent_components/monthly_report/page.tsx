@@ -30,7 +30,7 @@ export default function MonthlyReportPage() {
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-semibold mb-4">The Monthly Pickup Delivery Reports</h1>
+      <h1 className="text-center text-3xl font-bold mb-4">The Monthly Pickup Delivery Reports</h1>
       
       <Input
         type="text"
@@ -43,7 +43,7 @@ export default function MonthlyReportPage() {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableCell>#</TableCell>
+            <TableCell>Numbers</TableCell>
             <TableCell>Date</TableCell>
             <TableCell>Time</TableCell>
             <TableCell>Goods ID</TableCell>

@@ -19,6 +19,10 @@ export const TableHeader = ({ children }: { children: React.ReactNode }) => {
 export const TableBody = ({ children }: { children: React.ReactNode }) => {
   return <tbody>{children}</tbody>;
 };
+export const TableHead = ({ children }: { children: React.ReactNode }) => {
+  return <tbody>{children}</tbody>;
+};
+
 
 export const TableRow = ({ children }: { children: React.ReactNode }) => {
   return <tr className="border-b">{children}</tr>;

@@ -155,7 +155,7 @@ const AgentFinalRegistration = () => {
 
                  <button
                    type="button"
-                   onClick={() => router.push("/agent_components/registration_form")}
+                   onClick={() => router.push("/agent_auth/registration")}
                    className="flex items-center py-2 px-6 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
                 >
                     ← Previous

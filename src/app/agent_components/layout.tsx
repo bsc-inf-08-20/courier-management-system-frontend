@@ -12,6 +12,10 @@ import {
   Box,
   ChevronLeft,
   ChevronRight,
+  Bell,
+  NewspaperIcon,
+  SettingsIcon,
+  UserIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -21,6 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { report } from "process";
+import { profile } from "console";
 
 export default function AgentLayout({
   children,
@@ -33,15 +39,32 @@ export default function AgentLayout({
   // Define navigation items
   const navItems = [
     { href: "/agent_components", icon: Box, title: "Overview" },
+    
     {
       href: "/agent_components/confirm_pickup",
       icon: Truck,
       title: "Comfirm pickup",
     },
     { href: "/agent_components/monthly_report", 
-      icon: Users, 
-      title: "monthly report" },
-    // { href: "/admin/packages", icon: Package, title: "Packages" },
+      icon: NewspaperIcon, 
+      title: "monthly report", 
+    },
+
+    { href: "/agent_components/notification", 
+      icon: Bell,
+      title: "Notifications",
+     },
+
+     { href: "/agent_components/profile", 
+      icon: UserIcon, 
+      title: "profile" },
+
+     { href: "/agent_components/settings", 
+      icon: SettingsIcon, 
+      title: "settings" },
+      
+    // { href: "/admin/agents", icon: Users, title: "Agents" },
+    // { href: "/admin/agents", icon: Users, title: "Agents" },
     // { href: "/admin/agents", icon: Users, title: "Agents" },
   ];
 
