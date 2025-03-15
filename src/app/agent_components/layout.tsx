@@ -39,7 +39,7 @@ export default function AgentLayout({
   const router = useRouter(); // intialize the router
   // Define navigation items
   const navItems = [
-    { href: "/agent_components", icon: Box, title: "Overview" },
+    { href: "/agent_components", icon: Box, title: "Agent Dashboard" },
     
     {
       href: "/agent_components/confirm_pickup",
@@ -71,7 +71,7 @@ export default function AgentLayout({
 
   // Find the current page title based on the pathname
   const currentPage = navItems.find((item) => item.href === pathname);
-  const pageTitle = currentPage ? currentPage.title : "Admin Dashboard"; // Fallback title
+  const pageTitle = currentPage ? currentPage.title : "Agent Dashboard"; // Fallback title
 
   return (
     <div className="w-full flex h-screen">
@@ -88,7 +88,7 @@ export default function AgentLayout({
               sidebarOpen ? "opacity-100" : "opacity-0"
             }`}
           >
-            Admin Panel
+            Agent Panel
           </h2>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
