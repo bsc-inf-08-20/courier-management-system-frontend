@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation"; // Import usePathname
+import { useRouter } from "next/navigation"; 
 import {
   Truck,
   Users,
@@ -35,7 +36,7 @@ export default function AgentLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(true); // Sidebar toggle state
   const pathname = usePathname(); // Get the current route
-
+  const router = useRouter(); // intialize the router
   // Define navigation items
   const navItems = [
     { href: "/agent_components", icon: Box, title: "Overview" },
@@ -62,7 +63,7 @@ export default function AgentLayout({
      { href: "/agent_components/settings", 
       icon: SettingsIcon, 
       title: "settings" },
-      
+
     // { href: "/admin/agents", icon: Users, title: "Agents" },
     // { href: "/admin/agents", icon: Users, title: "Agents" },
     // { href: "/admin/agents", icon: Users, title: "Agents" },
@@ -141,7 +142,9 @@ export default function AgentLayout({
               side="right"
               className="w-48 bg-white shadow-lg rounded-md"
             >
-              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
+              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
+              onClick={() => router.push("/agent_components/profile")}
+              >
                 <User className="h-4 w-4" />
                 <span>Account</span>
               </DropdownMenuItem>

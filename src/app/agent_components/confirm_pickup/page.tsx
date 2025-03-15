@@ -94,7 +94,7 @@ const AgentPage = () => {
           <div className="text-center">
             <button
               type="submit"
-              className="w-2/4 bg-blue-500 text-white py-2 px-1 rounded-md hover:bg-blue-600 transition-all duration-300"
+              className="w-2/4 bg-blue-600 text-white py-2 px-1 rounded-md hover:bg-blue-700 transition-all duration-300"
             >
               {isSubmitted ? 'Goods Picked Up' : 'Confirm Pickup'}
             </button>
