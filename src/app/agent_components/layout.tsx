@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { report } from "process";
 import { profile } from "console";
+import Dashboard from "./desiplaygraphs/page";
 
 export default function AgentLayout({
   children,
@@ -50,6 +51,9 @@ export default function AgentLayout({
       icon: NewspaperIcon, 
       title: "monthly report", 
     },
+    { href: "/agent_components/desiplaygraphs", 
+      icon: NewspaperIcon, 
+      title: "Graphs" },
 
     { href: "/agent_components/notification", 
       icon: Bell,
@@ -63,8 +67,7 @@ export default function AgentLayout({
      { href: "/agent_components/settings", 
       icon: SettingsIcon, 
       title: "settings" },
-
-    // { href: "/admin/agents", icon: Users, title: "Agents" },
+      
     // { href: "/admin/agents", icon: Users, title: "Agents" },
     // { href: "/admin/agents", icon: Users, title: "Agents" },
   ];
