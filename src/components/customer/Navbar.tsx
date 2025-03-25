@@ -16,13 +16,13 @@ export default function Navbar() {
           <Link href="/">
             <Button variant="ghost">Home</Button>
           </Link>
-          <Link href="/booking">
+          <Link href="/customer/booking">
             <Button variant="ghost">Book a Courier</Button>
           </Link>
-          <Link href="/tracking">
+          <Link href="/customer/tracking">
             <Button variant="ghost">Track Package</Button>
           </Link>
-          <Link href="/auth">
+          <Link href="/customer/auth">
             <Button variant="outline">Login</Button>
           </Link>
         </div>

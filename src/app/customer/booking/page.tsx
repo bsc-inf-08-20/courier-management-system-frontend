@@ -1,5 +1,5 @@
 'use client'
-import Navbar from "@/components/Navbar";
+import Navbar from "@/components/customer/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
