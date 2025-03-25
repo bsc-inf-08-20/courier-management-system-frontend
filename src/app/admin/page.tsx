@@ -1,3 +1,5 @@
+"use client";
+
 export default function Admin() {
   return (
     <div>
@@ -5,7 +7,7 @@ export default function Admin() {
         Lorem ipsum dolor sit, amet consectetur adipisicing elit. Perspiciatis,
         eligendi quo eaque, earum, dolorum labore nobis ab doloremque voluptatum
         quis minima esse eos dignissimos voluptatibus sunt modi possimus.
-        Expedita, pariatur?
+        Expedita, pariatur?sjdkdsss
       </h1>
     </div>
   );

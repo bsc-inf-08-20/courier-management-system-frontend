@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation"; // Import usePathname
+import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Truck,
   Users,
@@ -27,10 +27,59 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true); // Sidebar toggle state
-  const pathname = usePathname(); // Get the current route
+  const [sidebarOpen, setSidebarOpen] = useState(false); // Default to false
+  const [isMobile, setIsMobile] = useState(false);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const pathname = usePathname();
+  const router = useRouter();
 
-  // Define navigation items
+  // Detect screen size and set initial sidebar state
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      setSidebarOpen(!mobile); // Open by default on desktop, closed on mobile
+    };
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Authentication check
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      router.push("/login/admin");
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      if (payload.role !== "ADMIN") {
+        router.push("/login/admin");
+      } else {
+        setIsAuthorized(true);
+      }
+    } catch (error) {
+      router.push("/login/admin");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  if (loading)
+    return (
+      <p className="flex justify-center items-center h-screen text-center w-full">
+        Checking authentication...
+      </p>
+    );
+
+  if (!isAuthorized) return null;
+
   const navItems = [
     { href: "/admin", icon: Box, title: "Overview" },
     {
@@ -43,30 +92,26 @@ export default function AdminLayout({
     { href: "/admin/agents", icon: Users, title: "Agents" },
   ];
 
-  // Find the current page title based on the pathname
   const currentPage = navItems.find((item) => item.href === pathname);
-  const pageTitle = currentPage ? currentPage.title : "Admin Dashboard"; // Fallback title
+  const pageTitle = currentPage ? currentPage.title : "Admin Dashboard";
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen w-full">
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full bg-white shadow-md border-r flex flex-col 
-        transition-all duration-300 ease-in-out z-40 ${
-          sidebarOpen ? "w-64" : "w-16"
+        className={`fixed top-0 left-0 h-full bg-white shadow-md border-r flex flex-col transition-all duration-300 ease-in-out z-40 ${
+          sidebarOpen
+            ? "w-64 opacity-100 pointer-events-auto"
+            : isMobile
+            ? "w-0 opacity-0 pointer-events-none overflow-hidden" // Fully hidden on mobile
+            : "w-16 opacity-100 pointer-events-auto" // Collapsed on desktop
         }`}
       >
         <div className="p-4 flex items-center justify-between">
-          <h2
-            className={`text-xl font-bold transition-opacity ${
-              sidebarOpen ? "opacity-100" : "opacity-0"
-            }`}
-          >
-            Admin Panel
-          </h2>
+          {sidebarOpen && <h2 className="text-xl font-bold">Admin Panel</h2>}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 rounded-md hover:bg-gray-100 transition-all absolute right-4"
+            className="p-2 rounded-md hover:bg-gray-100 transition-all absolute right-2"
           >
             {sidebarOpen ? (
               <ChevronLeft className="h-6 w-6" />
@@ -75,12 +120,13 @@ export default function AdminLayout({
             )}
           </button>
         </div>
-        <nav className="flex flex-col space-y-2">
+        <nav className="flex flex-col space-y-2 px-2">
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className="flex items-center gap-3 px-4 py-2 rounded-md text-gray-700 hover:bg-gray-100"
+              onClick={() => isMobile && setSidebarOpen(false)} // Auto-close on mobile
             >
               <item.icon className="h-5 w-5" />
               <span className={`${sidebarOpen ? "block" : "hidden"}`}>
@@ -90,8 +136,8 @@ export default function AdminLayout({
           ))}
         </nav>
 
-        {/* Profile Dropdown at Bottom */}
-        <div className="absolute bottom-0 border-t justify-end">
+        {/* Profile Dropdown */}
+        <div className="absolute bottom-0 border-t w-full">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="w-full flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100">
@@ -104,9 +150,9 @@ export default function AdminLayout({
                     sidebarOpen ? "block" : "hidden"
                   }`}
                 >
-                  <span className="text-sm font-medium">Austin Munthali</span>
+                  <span className="text-sm font-medium">Admin</span>
                   <span className="text-xs text-gray-500">
-                    austin@example.com
+                    admin@example.com
                   </span>
                 </div>
               </button>
@@ -120,7 +166,13 @@ export default function AdminLayout({
                 <User className="h-4 w-4" />
                 <span>Account</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
+              <DropdownMenuItem
+                className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  router.push("/login/admin");
+                }}
+              >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>
@@ -132,11 +184,11 @@ export default function AdminLayout({
       {/* Main content */}
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-64" : "ml-16"
+          sidebarOpen && !isMobile ? "ml-64" : isMobile ? "ml-0" : "ml-16"
         }`}
       >
         {/* Header with toggle button for mobile */}
-        <header className="h-16 border-b flex items-center justify-between px-4 md:hidden">
+        <header className="h-10 border-b flex items-center justify-between px-4 md:hidden">
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-md hover:bg-gray-100"
@@ -147,12 +199,14 @@ export default function AdminLayout({
         </header>
 
         {/* Static header for desktop */}
-        <header className="h-16 border-b flex items-center px-4 hidden md:flex">
-          <h2 className="text-lg font-semibold">{pageTitle}</h2>
+        <header className=" h-16 border-b flex items-center px-4 hidden md:flex">
+          <h2 className=" text-lg text-center font-semibold">{pageTitle}</h2>
         </header>
 
         {/* Main content */}
-        <main className="p-4 overflow-auto flex-1">{children}</main>
+        <main className="p-4 flex-1 w-full flex justify-center ">
+          {children}
+        </main>
       </div>
     </div>
   );
