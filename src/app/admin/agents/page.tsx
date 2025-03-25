@@ -1,5 +1,7 @@
 "use client";
 
+"use client";
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +22,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Trash2, Edit } from "lucide-react";
+import { CreateAgentModal } from "@/components/admin/CreateAgentModal";
 
 interface User {
   user_id: number;
@@ -28,7 +31,7 @@ interface User {
   phone_number: string;
   address: string;
   created_at: string;
-  role: string; // Added role property
+  role: string;
 }
 
 export default function AgentPage() {
@@ -37,7 +40,12 @@ export default function AgentPage() {
   const [loading, setLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = () => {
     const token = localStorage.getItem("token");
+    setLoading(true);
 
     fetch("http://localhost:3001/users", {
       headers: { Authorization: `Bearer ${token}` },
@@ -48,7 +56,6 @@ export default function AgentPage() {
       })
       .then((data) => {
         if (Array.isArray(data)) {
-          // ✅ Filter users to include only those with role "USER"
           const filteredUsers = data.filter((user) => user.role === "AGENT");
           setUsers(filteredUsers);
         } else {
@@ -59,15 +66,20 @@ export default function AgentPage() {
       .catch((err) => {
         console.error("Failed to load users", err);
         setUsers([]);
-      });
-  }, []);
+      })
+      .finally(() => setLoading(false));
+  };
+
+  const handleAgentCreated = (newAgent: User) => {
+    setUsers([...users, newAgent]);
+  };
 
   const openEditModal = (user: User) => {
     setSelectedUser(user);
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this user?")) return;
+    if (!confirm("Are you sure you want to delete this agent?")) return;
 
     setLoading(true);
     const res = await fetch(`http://localhost:3001/admin/users/${id}`, {
@@ -76,17 +88,21 @@ export default function AgentPage() {
     });
 
     if (res.ok) {
-      toast.success("User deleted successfully.");
+      toast.success("Agent deleted successfully.");
       setUsers(users.filter((user) => user.user_id !== id));
-    // } else {
-      toast.error("Failed to delete user.");
+    } else {
+      toast.error("Failed to delete agent.");
     }
     setLoading(false);
   };
 
   return (
     <div className="w-full justify-center">
-      <h2 className="text-2xl font-bold mb-4">Registered Agents</h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-2xl font-bold">Registered Agents</h2>
+        <CreateAgentModal onAgentCreated={handleAgentCreated} />
+      </div>
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -105,10 +121,19 @@ export default function AgentPage() {
               <TableCell>{user.phone_number}</TableCell>
               <TableCell>{user.address}</TableCell>
               <TableCell className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={() => openEditModal(user)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openEditModal(user)}
+                >
                   <Edit className="w-4 h-4" />
                 </Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(user.user_id)} disabled={loading}>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => handleDelete(user.user_id)}
+                  disabled={loading}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </TableCell>
@@ -116,8 +141,14 @@ export default function AgentPage() {
           ))}
         </TableBody>
       </Table>
+
       {selectedUser && (
-        <EditUserModal user={selectedUser} setUser={setSelectedUser} setUsers={setUsers} users={users} />
+        <EditUserModal
+          user={selectedUser}
+          setUser={setSelectedUser}
+          setUsers={setUsers}
+          users={users}
+        />
       )}
     </div>
   );
@@ -131,7 +162,11 @@ interface EditUserModalProps {
 }
 
 function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
-  const [formData, setFormData] = useState<{ name: string; phone_number: string; address: string }>({
+  const [formData, setFormData] = useState<{
+    name: string;
+    phone_number: string;
+    address: string;
+  }>({
     name: user.name,
     phone_number: user.phone_number,
     address: user.address,
@@ -155,7 +190,11 @@ function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
 
     if (res.ok) {
       toast.success("User updated successfully.");
-      setUsers(users.map((u) => (u.user_id === user.user_id ? { ...u, ...formData } : u)));
+      setUsers(
+        users.map((u) =>
+          u.user_id === user.user_id ? { ...u, ...formData } : u
+        )
+      );
       setUser(null);
     } else {
       toast.error("Failed to update user.");
@@ -170,9 +209,24 @@ function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
           <DialogTitle>Edit User</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
-          <Input name="name" value={formData.name} onChange={handleChange} placeholder="Name" />
-          <Input name="phone_number" value={formData.phone_number} onChange={handleChange} placeholder="Phone Number" />
-          <Input name="address" value={formData.address} onChange={handleChange} placeholder="Address" />
+          <Input
+            name="name"
+            value={formData.name}
+            onChange={handleChange}
+            placeholder="Name"
+          />
+          <Input
+            name="phone_number"
+            value={formData.phone_number}
+            onChange={handleChange}
+            placeholder="Phone Number"
+          />
+          <Input
+            name="address"
+            value={formData.address}
+            onChange={handleChange}
+            placeholder="Address"
+          />
         </div>
         <DialogFooter>
           <Button variant="secondary" onClick={() => setUser(null)}>
