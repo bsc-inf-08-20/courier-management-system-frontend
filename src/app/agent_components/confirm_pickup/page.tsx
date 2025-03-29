@@ -6,22 +6,26 @@ const AgentPage = () => {
   const [goodsId, setGoodsId] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [weight, setWeight] = useState('');
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // ✅ Validate weight to ensure it's a valid number
+    if (isNaN(Number(weight)) || Number(weight) <= 0) {
+      alert("❌ Weight must be a valid positive number.");
+      return;
+    }
 
     // Prepare data to be sent
     const formData = {
       goodsId,
       customerName,
-      weight,
+      weight: Number(weight), // Ensure weight is sent as a number
     };
 
     try {
       // Send the data to the backend
-      const response = await fetch('/api/notifyAdmin', {
+      const response = await fetch("http://localhost:3001/agent-confirm-pickup/confirm", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -31,15 +35,15 @@ const AgentPage = () => {
 
       // Check if the response is successful
       if (response.ok) {
-        setIsSubmitted(true);
+        alert("✅ Data sent successfully!");
         setGoodsId('');
         setCustomerName('');
         setWeight('');
       } else {
-        throw new Error('Failed to send the message');
+        alert("❌ Failed to send data. Please check your input and try again.");
       }
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Something went wrong');
+      alert("❌ Something went wrong. Please try again.");
     }
   };
 
@@ -47,7 +51,7 @@ const AgentPage = () => {
     <div className="w-full min-h-screen flex items-center justify-center bg-gray-100 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-lg bg-white p-6 sm:p-8 rounded-lg shadow-lg">
         <h2 className="text-xl sm:text-2xl font-semibold text-center mb-4 sm:mb-6">Agent Pickup</h2>
-        {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label htmlFor="goodsId" className="block text-sm font-medium text-gray-700">
@@ -63,6 +67,7 @@ const AgentPage = () => {
               required
             />
           </div>
+
           <div>
             <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
               Customer Name
@@ -77,12 +82,13 @@ const AgentPage = () => {
               required
             />
           </div>
+
           <div>
             <label htmlFor="weight" className="block text-sm font-medium text-gray-700">
               Weight of Goods (kg)
             </label>
             <input
-              type="number = double"
+              type="number"
               id="weight"
               name="weight"
               value={weight}
@@ -91,12 +97,13 @@ const AgentPage = () => {
               required
             />
           </div>
+
           <div className="text-center">
             <button
               type="submit"
               className="w-2/4 bg-blue-600 text-white py-2 px-1 rounded-md hover:bg-blue-700 transition-all duration-300"
             >
-              {isSubmitted ? 'Goods Picked Up' : 'Confirm Pickup'}
+              Confirm Pickup
             </button>
           </div>
         </form>
