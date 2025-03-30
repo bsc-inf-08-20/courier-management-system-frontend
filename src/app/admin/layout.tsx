@@ -106,7 +106,7 @@ export default function AdminLayout({
     {
       href: "/admin/dispatch",
       icon: MapPin,
-      title: "Dispatch",
+      title: "Inter-Hub Dispatch",
     },
     {
       href: "/admin/tracking",
