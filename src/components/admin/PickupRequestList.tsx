@@ -1,10 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import AgentList from "./AgentList";
-import AssignAgent from "./AssignAgent";
+import AssignAgent from "./UnassignedRequests";
 
 interface PickupRequest {
   id: number;
@@ -35,13 +42,25 @@ export default function PickupRequestList({ requests, setRequests }: Props) {
       <TableBody>
         {requests.map((request) => (
           <>
-            <TableRow key={request.id} className="cursor-pointer hover:bg-gray-100" onClick={() => setExpandedRequest(expandedRequest === request.id ? null : request.id)}>
+            <TableRow
+              key={request.id}
+              className="cursor-pointer hover:bg-gray-100"
+              onClick={() =>
+                setExpandedRequest(
+                  expandedRequest === request.id ? null : request.id
+                )
+              }
+            >
               <TableCell>{request.pickup_address}</TableCell>
               <TableCell>{request.destination_address}</TableCell>
               <TableCell>{request.status}</TableCell>
               <TableCell className="flex justify-between">
                 <span>Click to view agents</span>
-                {expandedRequest === request.id ? <ChevronUp /> : <ChevronDown />}
+                {expandedRequest === request.id ? (
+                  <ChevronUp />
+                ) : (
+                  <ChevronDown />
+                )}
               </TableCell>
             </TableRow>
 

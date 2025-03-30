@@ -1,10 +1,8 @@
 "use client";
 
-"use client";
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; // Make sure this import is correct
 import {
   Table,
   TableBody,
@@ -22,6 +20,17 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { Trash2, Edit } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { CreateAgentModal } from "@/components/admin/CreateAgentModal";
 
 interface User {
@@ -38,6 +47,7 @@ export default function AgentPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetchUsers();
@@ -79,21 +89,28 @@ export default function AgentPage() {
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this agent?")) return;
-
+    setDeletingId(id);
     setLoading(true);
-    const res = await fetch(`http://localhost:3001/admin/users/${id}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-    });
+    try {
+      const res = await fetch(`http://localhost:3001/users/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      });
 
-    if (res.ok) {
-      toast.success("Agent deleted successfully.");
-      setUsers(users.filter((user) => user.user_id !== id));
-    } else {
-      toast.error("Failed to delete agent.");
+      if (res.ok) {
+        toast.success("Agent deleted successfully.");
+        setUsers(users.filter((user) => user.user_id !== id));
+      } else {
+        throw new Error("Failed to delete agent");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete agent"
+      );
+    } finally {
+      setLoading(false);
+      setDeletingId(null);
     }
-    setLoading(false);
   };
 
   return (
@@ -128,14 +145,33 @@ export default function AgentPage() {
                 >
                   <Edit className="w-4 h-4" />
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => handleDelete(user.user_id)}
-                  disabled={loading}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive" size="sm">
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete {user.name}'s agent
+                        account? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(user.user_id)}
+                        disabled={loading && deletingId === user.user_id}
+                      >
+                        {loading && deletingId === user.user_id
+                          ? "Deleting..."
+                          : "Delete"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </TableCell>
             </TableRow>
           ))}

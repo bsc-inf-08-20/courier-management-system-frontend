@@ -12,6 +12,13 @@ import {
   Box,
   ChevronLeft,
   ChevronRight,
+  LayoutDashboard, // For Overview
+  Upload, // For Sending
+  Download, // For Receiving
+  UserRound, // For Agents (distinct from Customers)
+  MapPin, // For Dispatch
+  PackageSearch, // For Tracking
+  ClipboardList,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -81,15 +88,51 @@ export default function AdminLayout({
   if (!isAuthorized) return null;
 
   const navItems = [
-    { href: "/admin", icon: Box, title: "Overview" },
+    {
+      href: "/admin",
+      icon: LayoutDashboard,
+      title: "Overview",
+    },
     {
       href: "/admin/book-pickup-requests",
-      icon: Truck,
+      icon: ClipboardList, // or Truck if you prefer
       title: "Book Pickup Requests",
     },
-    { href: "/admin/customers", icon: Users, title: "Customers" },
-    { href: "/admin/packages", icon: Package, title: "Packages" },
-    { href: "/admin/agents", icon: Users, title: "Agents" },
+    {
+      href: "/admin/sending",
+      icon: Upload,
+      title: "Sending",
+    },
+    {
+      href: "/admin/dispatch",
+      icon: MapPin,
+      title: "Dispatch",
+    },
+    {
+      href: "/admin/tracking",
+      icon: PackageSearch,
+      title: "Track Package",
+    },
+    {
+      href: "/admin/receiving",
+      icon: Download,
+      title: "Receiving",
+    },
+    {
+      href: "/admin/packages",
+      icon: Package,
+      title: "Packages",
+    },
+    {
+      href: "/admin/customers",
+      icon: Users,
+      title: "Customers",
+    },
+    {
+      href: "/admin/agents",
+      icon: UserRound, // Different from Customers
+      title: "Agents",
+    },
   ];
 
   const currentPage = navItems.find((item) => item.href === pathname);

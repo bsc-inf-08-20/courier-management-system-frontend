@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import AssignAgent from "./AssignAgent";
+import AssignAgent from "./UnassignedRequests";
 
 interface Agent {
   user_id: number;
@@ -32,11 +32,19 @@ export default function AgentList({ requestId, setRequests }: Props) {
   return (
     <div className="flex flex-wrap gap-4 p-4">
       {agents.map((agent) => (
-        <Button key={agent.user_id} variant={selectedAgent === agent.user_id ? "default" : "outline"} onClick={() => setSelectedAgent(agent.user_id)}>
+        <Button
+          key={agent.user_id}
+          variant={selectedAgent === agent.user_id ? "default" : "outline"}
+          onClick={() => setSelectedAgent(agent.user_id)}
+        >
           {agent.name}
         </Button>
       ))}
-      <AssignAgent requestId={requestId} agentId={selectedAgent} setRequests={setRequests} />
+      <AssignAgent
+        requestId={requestId}
+        agentId={selectedAgent}
+        setRequests={setRequests}
+      />
     </div>
   );
 }
