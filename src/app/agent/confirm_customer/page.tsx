@@ -5,6 +5,7 @@ import { useState } from 'react';
 const AgentPage = () => {
   const [goodsId, setGoodsId] = useState('');
   const [customerName, setCustomerName] = useState('');
+  const [location, setLocation] = useState('');
   const [weight, setWeight] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -20,6 +21,7 @@ const AgentPage = () => {
     const formData = {
       goodsId,
       customerName,
+      location,
       weight: Number(weight), // weight is sent as a number
     };
 
@@ -38,6 +40,7 @@ const AgentPage = () => {
         alert("✅ Information sent successfully!");
         setGoodsId('');
         setCustomerName('');
+        setLocation('');
         setWeight('');
       } else {
         alert("❌ Failed to send information. Please check your input and try again.");
@@ -84,6 +87,21 @@ const AgentPage = () => {
           </div>
 
           <div>
+            <label htmlFor="customerName" className="block text-sm font-medium text-gray-700">
+              Location
+            </label>
+            <input
+              type="text"
+              id="location"
+              name="location"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              className="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              required
+            />
+          </div>
+     
+          <div>
             <label htmlFor="weight" className="block text-sm font-medium text-gray-700">
               Weight of Goods (kg)
             </label>
@@ -103,7 +121,7 @@ const AgentPage = () => {
               type="submit"
               className="w-2/4 bg-blue-600 text-white py-2 px-1 rounded-md hover:bg-blue-700 transition-all duration-300"
             >
-              Confirm Pickup
+              Confirm Customer
             </button>
           </div>
         </form>

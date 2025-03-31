@@ -43,7 +43,7 @@ export default function AgentLayout({
     { href: "/agent", icon: Box, title: "Agent Dashboard" },
     
     {
-      href: "/agent/confirm_pickup",
+      href: "/agent/confirm_pickups",
       icon: Truck,
       title: "Comfirm pickup",
     },
@@ -54,6 +54,10 @@ export default function AgentLayout({
     { href: "/agent/desiplaygraphs", 
       icon: NewspaperIcon, 
       title: "Graphs" },
+
+    { href: "/agent/confirm_customer", 
+      icon: Users, 
+      title: "Enter Customer's Details" },
 
     { href: "/agent/notification", 
       icon: Bell,
@@ -68,8 +72,8 @@ export default function AgentLayout({
       icon: SettingsIcon, 
       title: "settings" },
       
-    // { href: "/admin/agents", icon: Users, title: "Agents" },
-    // { href: "/admin/agents", icon: Users, title: "Agents" },
+    // { href: "/agent/agents", icon: Users, title: "Agents" },
+    // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
 
   // Find the current page title based on the pathname
