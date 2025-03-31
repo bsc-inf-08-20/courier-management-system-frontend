@@ -47,7 +47,7 @@ export default function AgentLoginPage() {
       }
 
       // Redirect to agent dashboard
-      router.push("/agent_components");
+      router.push("/agent");
     } catch (err) {
       setLoading(false);
       setError("Something went wrong, please try again.");
@@ -91,7 +91,7 @@ export default function AgentLoginPage() {
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
             Don't have an agent account?{" "}
-            <Link href="/agent-apply" className="text-blue-600 font-semibold hover:underline">
+            <Link href="/agent_auth/registration" className="text-blue-600 font-semibold hover:underline">
               Apply to be an Agent
             </Link>
           </p>

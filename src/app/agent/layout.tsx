@@ -40,31 +40,31 @@ export default function AgentLayout({
   const router = useRouter(); // intialize the router
   // Define navigation items
   const navItems = [
-    { href: "/agent_components", icon: Box, title: "Agent Dashboard" },
+    { href: "/agent", icon: Box, title: "Agent Dashboard" },
     
     {
-      href: "/agent_components/confirm_pickup",
+      href: "/agent/confirm_pickup",
       icon: Truck,
       title: "Comfirm pickup",
     },
-    { href: "/agent_components/monthly_report", 
+    { href: "/agent/monthly_report", 
       icon: NewspaperIcon, 
       title: "monthly report", 
     },
-    { href: "/agent_components/desiplaygraphs", 
+    { href: "/agent/desiplaygraphs", 
       icon: NewspaperIcon, 
       title: "Graphs" },
 
-    { href: "/agent_components/notification", 
+    { href: "/agent/notification", 
       icon: Bell,
       title: "Notifications",
      },
 
-     { href: "/agent_components/profile", 
+     { href: "/agent/profile", 
       icon: UserIcon, 
       title: "profile" },
 
-     { href: "/agent_components/settings", 
+     { href: "/agent/settings", 
       icon: SettingsIcon, 
       title: "settings" },
       
