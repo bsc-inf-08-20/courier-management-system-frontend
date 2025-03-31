@@ -72,7 +72,9 @@
 
     --sidebar-border: 220 13% 91%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --radius: 0.5rem}
   .dark {
 
     --background: 240 10% 3.9%;
@@ -138,7 +140,10 @@
 
     --sidebar-border: 240 3.7% 15.9%;
 
-    --sidebar-ring: 217.2 91.2% 59.8%}
+    --sidebar-ring: 217.2 91.2% 59.8%;
+
+    --chart-5: 340 75% 55%
+  }
 }
 
 

@@ -1,11 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Link from 'next/link';
+import { useState } from "react";
+import Link from "next/link";
 
 const LoginPage = () => {
-  const [credentials, setCredentials] = useState({ username: '', password: '' });
-  const [error, setError] = useState('');
+  const [credentials, setCredentials] = useState({
+    username: "",
+    password: "",
+  });
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -16,21 +19,21 @@ const LoginPage = () => {
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    setError('');
+    setError("");
 
     try {
       // Simulate authentication (Replace with API request)
       await new Promise((resolve, reject) => {
         setTimeout(() => {
           if (credentials.username && credentials.password) {
-            resolve('Success');
+            resolve("Success");
           } else {
-            reject('Invalid credentials');
+            reject("Invalid credentials");
           }
         }, 1000);
       });
 
-      console.log('Login successful');
+      console.log("Login successful");
     } catch (err) {
       setError(err as string);
     } finally {
@@ -39,13 +42,17 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 px-4">
-      <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-4 text-black">Agent Login</h1>
+    <div className="flex flex-col items-center justify-center min-h-screen w-full bg-gray-100 px-4">
+      <div className="w-full max-w-lg px-6 py-8 bg-white rounded-lg shadow-md">
+        <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">
+          Agent Login
+        </h1>
         {error && <p className="text-red-500 text-center mb-2">{error}</p>}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label htmlFor="username" className="block font-medium text-black">Username:</label>
+            <label htmlFor="username" className="block font-medium text-black">
+              Username:
+            </label>
             <input
               type="text"
               id="username"
@@ -57,7 +64,9 @@ const LoginPage = () => {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block font-medium text-black">Password:</label>
+            <label htmlFor="password" className="block font-medium text-black">
+              Password:
+            </label>
             <input
               type="password"
               id="password"
@@ -70,14 +79,20 @@ const LoginPage = () => {
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition disabled:opacity-50"
+            className="w-full bg-gray-600 text-white py-2 rounded hover:bg-gray-400 transition disabled:opacity-50"
             disabled={isLoading}
           >
-            {isLoading ? 'Logging in...' : 'Log In'}
+            {isLoading ? "Logging in..." : "Log In"}
           </button>
         </form>
         <p className="text-center mt-4 text-black">
-          Don't have an account? <Link href="/agent_auth/registration" className="text-blue-600 hover:underline">Register here</Link>
+          Don't have an account?{" "}
+          <Link
+            href="/agent_auth/registration"
+            className="text-blue-600 hover:underline"
+          >
+            Register here
+          </Link>
         </p>
       </div>
     </div>

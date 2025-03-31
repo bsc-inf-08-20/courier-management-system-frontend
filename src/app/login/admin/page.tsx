@@ -56,9 +56,9 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex justify-center w-full items-center h-screen bg-gray-100">
-      <Card className="w-96">
+      <Card className="w-full max-w-lg px-6 py-8 bg-white rounded-lg shadow-md">
         <CardHeader>
-          <CardTitle className="text-center font-bold">Admin Login</CardTitle>
+          <CardTitle className="text-3xl font-bold text-gray-800 mb-6 text-center">Admin Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
