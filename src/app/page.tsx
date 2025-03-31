@@ -1,118 +1,84 @@
 'use client'
-
 import Navbar from "@/components/customer/Navbar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
 import { ArrowRight, Package, Truck, MapPin } from "lucide-react";
-import { useState } from "react";
+import { motion } from "framer-motion";
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleNavigation = () => setIsLoading(true);
-
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-100 flex flex-col">
       <Navbar />
-      <section className="flex-grow flex items-center justify-center py-16 bg-gradient-to-r from-blue-500 to-indigo-600 text-white">
-        <div className="max-w-3xl mx-auto text-center px-4">
-          <h2 className="text-4xl md:text-5xl font-extrabold mb-4 animate-fade-in">
-            Fast. Reliable. Local Courier Services
-          </h2>
-          <p className="text-lg md:text-xl mb-6">
-            Send packages anywhere in Malawi with ease. Book, track, and deliver—all in one place.
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="flex-grow flex items-center justify-center py-16 bg-gradient-to-br from-blue-600 to-indigo-700 text-white"
+      >
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <motion.h2
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight"
+          >
+            Your Trusted Courier in Malawi
+          </motion.h2>
+          <p className="text-lg md:text-xl mb-8 opacity-90">
+            Send packages with ease—book, track, and deliver seamlessly.
           </p>
-          <div className="space-x-4">
-            <Link href="/booking" onClick={handleNavigation}>
-              <Button
-                size="lg"
-                className="bg-white text-blue-600 hover:bg-gray-100"
-                disabled={isLoading}
-              >
-                {isLoading ? "Loading..." : "Book Now"} <ArrowRight className="ml-2 h-5 w-5" />
+          <div className="flex flex-col sm:flex-row justify-center gap-4">
+            <Link href="/customer/booking">
+              <Button size="lg" variant="outline" className="bg-white text-blue-600 hover:bg-white/20 shadow-lg transition-all">
+                Book Now <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </Link>
-            <Link href="/tracking" onClick={handleNavigation}>
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-white border-white"
-                disabled={isLoading}
-              >
+            <Link href="/customer/tracking">
+              <Button size="lg" variant="outline" className="text-blue-600 border-white hover:bg-white/20 shadow-lg transition-all">
                 Track Package
               </Button>
             </Link>
           </div>
         </div>
-      </section>
-{/* Features Section */}
-<section className="py-16 max-w-7xl mx-auto px-4">
-        <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">
-          Why Choose Us?
-        </h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Feature 1: Easy Booking */}
-          <Card className="hover:shadow-lg transition-shadow">
+      </motion.section>
+      <section className="py-16 max-w-6xl mx-auto px-6">
+        <h3 className="text-3xl font-bold text-center text-gray-800 mb-12">Why Choose Us?</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Package className="h-6 w-6 text-blue-500" />
-                <span>Easy Booking</span>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-6 w-6 text-blue-600" /> Easy Booking
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Book your courier in minutes with our simple online form.
-              </p>
+              <p className="text-gray-600">Book in minutes with our streamlined process.</p>
             </CardContent>
           </Card>
-
-          {/* Feature 2: Reliable Agents */}
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Truck className="h-6 w-6 text-blue-500" />
-                <span>Reliable Agents</span>
+              <CardTitle className="flex items-center gap-2">
+                <Truck className="h-6 w-6 text-blue-600" /> Reliable Agents
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Trusted local agents ensure your package is picked up and delivered on time.
-              </p>
+              <p className="text-gray-600">Our trusted agents ensure timely pick-up and delivery.</p>
             </CardContent>
           </Card>
-
-          {/* Feature 3: Real-Time Tracking */}
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-shadow duration-300">
             <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MapPin className="h-6 w-6 text-blue-500" />
-                <span>Real-Time Tracking</span>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-6 w-6 text-blue-600" /> Real-Time Tracking
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">
-                Follow your package every step of the way with live updates.
-              </p>
+              <p className="text-gray-600">Track your package every step of the way.</p>
             </CardContent>
           </Card>
         </div>
       </section>
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-6">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+      <footer className="bg-gray-900 text-white py-8">
+        <div className="max-w-6xl mx-auto px-6 text-center">
           <p>© 2025 Malawi Courier. All rights reserved.</p>
-          <div className="space-x-4 mt-4 md:mt-0">
-            <Link href="/about" className="hover:underline">
-              About
-            </Link>
-            <Link href="/contact" className="hover:underline">
-              Contact
-            </Link>
-            <Link href="/terms" className="hover:underline">
-              Terms
-            </Link>
-          </div>
         </div>
       </footer>
     </div>
