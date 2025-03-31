@@ -20,7 +20,7 @@ const AgentPage = () => {
     const formData = {
       goodsId,
       customerName,
-      weight: Number(weight), // Ensure weight is sent as a number
+      weight: Number(weight), // weight is sent as a number
     };
 
     try {
@@ -35,12 +35,12 @@ const AgentPage = () => {
 
       // Check if the response is successful
       if (response.ok) {
-        alert("✅ Data sent successfully!");
+        alert("✅ Information sent successfully!");
         setGoodsId('');
         setCustomerName('');
         setWeight('');
       } else {
-        alert("❌ Failed to send data. Please check your input and try again.");
+        alert("❌ Failed to send information. Please check your input and try again.");
       }
     } catch (error) {
       alert("❌ Something went wrong. Please try again.");
