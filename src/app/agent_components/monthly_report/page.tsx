@@ -6,9 +6,11 @@ import { Table, TableHeader, TableBody, TableRow, TableCell } from "@/components
 
 interface Pickup {
   id: string;
+  goodId: string;
+  customerName: string;
+  weight: number;
   date: string;
   time: string;
-  customerName: string;
   status: "Complete" | "Pending";
 }
 
@@ -44,10 +46,11 @@ export default function MonthlyReportPage() {
         <TableHeader>
           <TableRow>
             <TableCell>Numbers</TableCell>
-            <TableCell>Date</TableCell>
-            <TableCell>Time</TableCell>
             <TableCell>Goods ID</TableCell>
             <TableCell>Customer Name</TableCell>
+            <TableCell>weight</TableCell>
+            <TableCell>Date</TableCell>
+            <TableCell>Time</TableCell>
             <TableCell>Status</TableCell>
           </TableRow>
         </TableHeader>
@@ -56,10 +59,11 @@ export default function MonthlyReportPage() {
             filteredData.map((item, index) => (
               <TableRow key={item.id}>
                 <TableCell>{index + 1}</TableCell>
-                <TableCell>{item.date}</TableCell>
-                <TableCell>{item.time}</TableCell>
                 <TableCell>{item.id}</TableCell>
                 <TableCell>{item.customerName}</TableCell>
+                <TableCell>{item.weight}</TableCell>
+                <TableCell>{item.date}</TableCell>
+                <TableCell>{item.time}</TableCell>
                 <TableCell className={item.status === "Complete" ? "text-green-600" : "text-yellow-600"}>
                   {item.status}
                 </TableCell>
