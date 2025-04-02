@@ -42,9 +42,18 @@ interface Packet {
   origin_address: string;
   destination_address: string;
   collected_at?: string;
+  origin_hub_confirmed_at?: string;
   dispatched_at?: string;
+  destination_hub_confirmed_at?: string | null;
+  out_for_delivery_at?: string | null;
+  delivered_at?: string | null;
+  received_at?: string | null;
+  hub_confirmed_at?: string | null;
   assigned_driver?: Driver | null;
   assigned_vehicle?: Vehicle | null;
+  pickup?: {
+    customer: Customer;
+  };
 }
 
 interface PickupRequest {
@@ -76,65 +85,82 @@ interface Vehicle {
   capacity: number;
   is_active: boolean;
   is_in_maintenance: boolean;
-  assigned_driver?: Driver | null;
+  current_city: string;
+}
+
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return "An unknown error occurred";
 }
 
 const DispatchPacketsPage = () => {
-  const [packets, setPackets] = useState<PickupRequest[]>([]);
+  const [packets, setPackets] = useState<Packet[]>([]);
   const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [adminCity, setAdminCity] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("ready-for-dispatch");
+  const [hasMounted, setHasMounted] = useState(false);
 
   const [selectedPackets, setSelectedPackets] = useState<number[]>([]);
   const [expandedPacket, setExpandedPacket] = useState<number | null>(null);
   const [selectedDriver, setSelectedDriver] = useState<number | null>(null);
   const [selectedVehicle, setSelectedVehicle] = useState<number | null>(null);
   const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
-
-  const [inTransitPackets, setInTransitPackets] = useState<PickupRequest[]>([]);
+  const [inTransitPackets, setInTransitPackets] = useState<Packet[]>([]);
 
   useEffect(() => {
-    // Only run on client side
-    if (typeof window === "undefined") return;
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasMounted) return;
 
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      console.error("Token not found");
+      toast.error("Please log in first");
+      return;
+    }
 
     const fetchData = async () => {
       setLoading(true);
       try {
-        // Fetch admin data first to get city
         const adminRes = await fetch("http://localhost:3001/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (!adminRes.ok) {
+          const errorData = await adminRes.json();
+          throw new Error(errorData.message || "Failed to fetch admin data");
+        }
         const adminData = await adminRes.json();
-        setAdminCity(adminData.city);
+        setAdminCity(adminData.city || "");
 
-        // Fetch all data in parallel
         const [driversRes, vehiclesRes, readyPacketsRes, inTransitRes] =
           await Promise.all([
             fetch(
-              `http://localhost:3001/users/drivers?city=${adminData.city}`,
-              {
-                headers: { Authorization: `Bearer ${token}` },
-              }
+              `http://localhost:3001/users/city/drivers?city=${adminData.city}`,
+              { headers: { Authorization: `Bearer ${token}` } }
             ),
             fetch(`http://localhost:3001/vehicles?city=${adminData.city}`, {
-              headers: { Authorization: `Bearer ${token}` },
-            }),
+              headers: { Authorization: `Bearer ${token}` } }
+            ),
             fetch(
-              `http://localhost:3001/pickup/requests?status=at_origin_hub&city=${adminData.city}`,
+              `http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`,
               { headers: { Authorization: `Bearer ${token}` } }
             ),
             fetch(
-              `http://localhost:3001/pickup/requests?status=in_transit&origin=${adminData.city}`,
+              `http://localhost:3001/packets/in-transit?origin=${adminData.city}`,
               { headers: { Authorization: `Bearer ${token}` } }
             ),
           ]);
 
-        // Ensure responses are arrays
+        if (!driversRes.ok) throw new Error("Failed to fetch drivers");
+        if (!vehiclesRes.ok) throw new Error("Failed to fetch vehicles");
+        if (!readyPacketsRes.ok) throw new Error("Failed to fetch ready packets");
+        if (!inTransitRes.ok) throw new Error("Failed to fetch in-transit packets");
+
         const driversData = await driversRes.json();
         const vehiclesData = await vehiclesRes.json();
         const readyPacketsData = await readyPacketsRes.json();
@@ -143,11 +169,17 @@ const DispatchPacketsPage = () => {
         setDrivers(Array.isArray(driversData) ? driversData : []);
         setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
         setPackets(Array.isArray(readyPacketsData) ? readyPacketsData : []);
-        setInTransitPackets(Array.isArray(inTransitData) ? inTransitData : []);
+
+        // Handle in-transit packets
+        const inTransitArray = Array.isArray(inTransitData)
+          ? inTransitData
+          : Array.isArray(inTransitData?.data)
+          ? inTransitData.data
+          : [];
+        setInTransitPackets(inTransitArray);
       } catch (error) {
         console.error("Fetch error:", error);
-        toast.error("Failed to load data");
-        // Reset to empty arrays on error
+        toast.error(getErrorMessage(error));
         setPackets([]);
         setInTransitPackets([]);
       } finally {
@@ -156,7 +188,7 @@ const DispatchPacketsPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [hasMounted]);
 
   const togglePacketSelection = (id: number) => {
     setSelectedPackets((prev) =>
@@ -181,10 +213,14 @@ const DispatchPacketsPage = () => {
       toast.error("Please select a vehicle");
       return false;
     }
+    if (selectedPackets.length === 0) {
+      toast.error("Please select at least one packet");
+      return false;
+    }
 
     const totalWeight = selectedPackets.reduce((sum, pid) => {
       const packet = packets.find((p) => p.id === pid);
-      return sum + (packet?.packet.weight || 0);
+      return sum + (packet?.weight || 0);
     }, 0);
 
     const vehicle = vehicles.find((v) => v.id === selectedVehicle);
@@ -207,7 +243,10 @@ const DispatchPacketsPage = () => {
 
     setLoading(true);
     const token = localStorage.getItem("token");
-    if (!token) return;
+    if (!token) {
+      toast.error("Authentication token not found");
+      return;
+    }
 
     try {
       const response = await fetch(
@@ -226,7 +265,10 @@ const DispatchPacketsPage = () => {
         }
       );
 
-      if (!response.ok) throw new Error("Failed to dispatch packets");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to dispatch packets");
+      }
 
       toast.success("Packets dispatched successfully");
 
@@ -242,14 +284,20 @@ const DispatchPacketsPage = () => {
 
       // Refresh in-transit packets
       const inTransitRes = await fetch(
-        `http://localhost:3001/pickup/requests?status=in_transit&origin=${adminCity}`,
+        `http://localhost:3001/packets/in-transit?origin=${adminCity}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
+      if (!inTransitRes.ok) throw new Error("Failed to fetch updated in-transit packets");
       const inTransitData = await inTransitRes.json();
-      setInTransitPackets(Array.isArray(inTransitData) ? inTransitData : []);
+      const inTransitArray = Array.isArray(inTransitData)
+        ? inTransitData
+        : Array.isArray(inTransitData?.data)
+        ? inTransitData.data
+        : [];
+      setInTransitPackets(inTransitArray);
     } catch (error) {
       console.error("Dispatch error:", error);
-      toast.error("Failed to dispatch packets");
+      toast.error(getErrorMessage(error));
     } finally {
       setLoading(false);
       setShowConfirmationDialog(false);
@@ -271,14 +319,13 @@ const DispatchPacketsPage = () => {
     return <Badge className={statusInfo.color}>{statusInfo.text}</Badge>;
   };
 
-  const formatDate = (dateString?: string) => {
+  const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
-    if (typeof window === "undefined") return dateString;
     return new Date(dateString).toLocaleString();
   };
 
-  if (loading && packets.length === 0 && inTransitPackets.length === 0) {
-    return <div className="p-6 text-center">Loading dispatch data...</div>;
+  if (!hasMounted) {
+    return <div className="p-6 text-center">Loading...</div>;
   }
 
   return (
@@ -298,7 +345,9 @@ const DispatchPacketsPage = () => {
         </TabsList>
 
         <TabsContent value="ready-for-dispatch">
-          {!Array.isArray(packets) || packets.length === 0 ? (
+          {loading && packets.length === 0 ? (
+            <p className="text-center py-6">Loading packets...</p>
+          ) : packets.length === 0 ? (
             <p className="text-center py-6">No packets ready for dispatch</p>
           ) : (
             <>
@@ -319,8 +368,10 @@ const DispatchPacketsPage = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-10"></TableHead>
+                      <TableHead>ID</TableHead>
                       <TableHead>Description</TableHead>
                       <TableHead>Weight</TableHead>
+                      <TableHead>Category</TableHead>
                       <TableHead>Origin</TableHead>
                       <TableHead>Destination</TableHead>
                       <TableHead>Status</TableHead>
@@ -340,15 +391,13 @@ const DispatchPacketsPage = () => {
                               disabled={loading}
                             />
                           </TableCell>
-                          <TableCell>{packet.packet.description}</TableCell>
-                          <TableCell>{packet.packet.weight} kg</TableCell>
-                          <TableCell>{packet.packet.origin_address}</TableCell>
-                          <TableCell>
-                            {packet.packet.destination_address}
-                          </TableCell>
-                          <TableCell>
-                            {getStatusBadge(packet.packet.status)}
-                          </TableCell>
+                          <TableCell>{packet.id}</TableCell>
+                          <TableCell>{packet.description || "N/A"}</TableCell>
+                          <TableCell>{packet.weight || 0} kg</TableCell>
+                          <TableCell>{packet.category || "N/A"}</TableCell>
+                          <TableCell>{packet.origin_address || "N/A"}</TableCell>
+                          <TableCell>{packet.destination_address || "N/A"}</TableCell>
+                          <TableCell>{getStatusBadge(packet.status || "")}</TableCell>
                           <TableCell>
                             <Button
                               variant="ghost"
@@ -367,7 +416,7 @@ const DispatchPacketsPage = () => {
 
                         {expandedPacket === packet.id && (
                           <TableRow>
-                            <TableCell colSpan={7} className="bg-gray-50 p-4">
+                            <TableCell colSpan={9} className="bg-gray-50 p-4">
                               <div className="space-y-6">
                                 <div>
                                   <h3 className="text-lg font-medium mb-3 flex items-center">
@@ -475,13 +524,16 @@ const DispatchPacketsPage = () => {
         </TabsContent>
 
         <TabsContent value="in-transit">
-          {!Array.isArray(inTransitPackets) || inTransitPackets.length === 0 ? (
+          {loading && inTransitPackets.length === 0 ? (
+            <p className="text-center py-6">Loading in-transit packets...</p>
+          ) : inTransitPackets.length === 0 ? (
             <p className="text-center py-6">No packets in transit</p>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>ID</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Weight</TableHead>
                     <TableHead>Origin</TableHead>
@@ -497,19 +549,20 @@ const DispatchPacketsPage = () => {
                       key={`in-transit-${packet.id}`}
                       className="hover:bg-gray-50"
                     >
-                      <TableCell>{packet.packet.description}</TableCell>
-                      <TableCell>{packet.packet.weight} kg</TableCell>
-                      <TableCell>{packet.packet.origin_address}</TableCell>
-                      <TableCell>{packet.packet.destination_address}</TableCell>
+                      <TableCell>{packet.id}</TableCell>
+                      <TableCell>{packet.description || "N/A"}</TableCell>
+                      <TableCell>{packet.weight || 0} kg</TableCell>
+                      <TableCell>{packet.origin_address || "N/A"}</TableCell>
+                      <TableCell>{packet.destination_address || "N/A"}</TableCell>
                       <TableCell>
-                        {formatDate(packet.packet.dispatched_at)}
+                        {formatDate(packet.dispatched_at)}
                       </TableCell>
                       <TableCell>
-                        {packet.packet.assigned_driver?.name || "N/A"}
+                        {packet.assigned_driver?.name || "N/A"}
                       </TableCell>
                       <TableCell>
-                        {packet.packet.assigned_vehicle
-                          ? `${packet.packet.assigned_vehicle.make} ${packet.packet.assigned_vehicle.model}`
+                        {packet.assigned_vehicle
+                          ? `${packet.assigned_vehicle.make} ${packet.assigned_vehicle.model}`
                           : "N/A"}
                       </TableCell>
                     </TableRow>
@@ -529,8 +582,8 @@ const DispatchPacketsPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Dispatch</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to dispatch {selectedPackets.length}{" "}
-              packet(s) with the selected driver and vehicle?
+              Are you sure you want to dispatch {selectedPackets.length} packet(s)
+              with the selected driver and vehicle?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
