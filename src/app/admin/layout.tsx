@@ -253,8 +253,8 @@ export default function AdminLayout({
         </header>
 
         {/* Desktop Header */}
-        <header className="h-16 border-b hidden md:flex items-center px-6 bg-white">
-          <h2 className="text-lg font-semibold">{pageTitle}</h2>
+        <header className="h-16 border-b hidden md:flex items-center px-6 bg-slate-300">
+          <h2 className="text-lg font-semibold ">{pageTitle}</h2>
         </header>
 
         {/* Content */}
