@@ -37,7 +37,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import "leaflet/dist/leaflet.css";
@@ -60,7 +59,7 @@ export default function CreatePacketPage() {
     origin_coordinates: { lat: 0, lng: 0 },
     destination_address: "",
     destination_coordinates: { lat: 0, lng: 0 },
-    delivery_type: "pickup", // 'pickup' or 'delivery'
+    delivery_type: "pickup",
     destination_hub: "",
     sender: {
       name: "",
@@ -77,12 +76,11 @@ export default function CreatePacketPage() {
   const [mapPosition, setMapPosition] = useState<LatLng | null>(null);
   const [adminCity, setAdminCity] = useState("");
   const [qrCodeOpen, setQrCodeOpen] = useState(false);
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null); // New state for QR code data
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
-  // Use auth hook to ensure admin access
   useAuth("ADMIN");
 
-  // Fix Leaflet icon issue and fetch admin data
   useEffect(() => {
     delete (L.Icon.Default.prototype as any)._getIconUrl;
     L.Icon.Default.mergeOptions({
@@ -112,7 +110,7 @@ export default function CreatePacketPage() {
           origin_address: data.city,
           origin_coordinates: cityCoordinates,
           destination_hub: data.city || "",
-          destination_address: `${data.city} Hub`,
+          destination_address: `${data.city}`,
         }));
       } catch (error) {
         console.error("Error fetching admin data:", error);
@@ -125,7 +123,6 @@ export default function CreatePacketPage() {
     fetchAdminData();
   }, []);
 
-  // Handle input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
@@ -133,50 +130,41 @@ export default function CreatePacketPage() {
       const field = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
-        sender: {
-          ...prev.sender,
-          [field]: value,
-        },
+        sender: { ...prev.sender, [field]: value },
       }));
     } else if (name.startsWith("receiver.")) {
       const field = name.split(".")[1];
       setFormData((prev) => ({
         ...prev,
-        receiver: {
-          ...prev.receiver,
-          [field]: value,
-        },
+        receiver: { ...prev.receiver, [field]: value },
       }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Handle category selection
   const handleCategoryChange = (value: string) => {
     setFormData((prev) => ({ ...prev, category: value }));
   };
 
-  // Handle hub selection
   const handleHubChange = (value: string) => {
     const selectedHub = HUB_LOCATIONS.find((hub) => hub.name === value);
     setFormData((prev) => ({
       ...prev,
       destination_hub: value,
-      destination_address: `${value} Hub`,
+      destination_address: `${value}`,
       destination_coordinates: selectedHub
         ? selectedHub.coordinates
         : { lat: 0, lng: 0 },
     }));
   };
 
-  // Handle delivery type change
   const handleDeliveryTypeChange = (value: "pickup" | "delivery") => {
     setFormData((prev) => ({
       ...prev,
       delivery_type: value,
       destination_address:
-        value === "pickup" ? `${prev.destination_hub || adminCity} Hub` : "",
+        value === "pickup" ? `${prev.destination_hub || adminCity}` : "",
       destination_coordinates:
         value === "pickup"
           ? getCityCoordinates(prev.destination_hub || adminCity)
@@ -185,7 +173,6 @@ export default function CreatePacketPage() {
     if (value === "pickup") setMapPosition(null);
   };
 
-  // Map click handler
   const MapClickHandler = () => {
     useMapEvents({
       click(e) {
@@ -200,7 +187,6 @@ export default function CreatePacketPage() {
     return null;
   };
 
-  // Submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -228,9 +214,25 @@ export default function CreatePacketPage() {
 
       const responseData = await res.json();
       toast.success("Packet created successfully");
+
+      // Store the actual packet data for the QR code
+      setQrCodeData(
+        JSON.stringify({
+          packetId: responseData.id, // Use the server-generated ID
+          description: formData.description,
+          weight: formData.weight,
+          category: formData.category,
+          sender: formData.sender,
+          receiver: formData.receiver,
+          origin: formData.origin_address,
+          destination: formData.destination_address,
+          createdAt: new Date().toISOString(),
+          status: "at_origin_hub",
+        })
+      );
       setQrCodeOpen(true);
 
-      // Reset form data to initial state, preserving origin data from admin
+      // Reset form data
       setFormData({
         description: "",
         weight: "",
@@ -265,47 +267,27 @@ export default function CreatePacketPage() {
     }
   };
 
-  // Get city coordinates
   const getCityCoordinates = (city: string) => {
     const hub = HUB_LOCATIONS.find((h) => h.name === city);
-    return hub ? hub.coordinates : { lat: -13.9626, lng: 33.7741 }; // Default to Lilongwe
+    return hub ? hub.coordinates : { lat: -13.9626, lng: 33.7741 };
   };
 
-  // Generate QR code data
-  const generateQrData = () => {
-    return JSON.stringify({
-      packetId: Date.now().toString(),
-      description: formData.description,
-      weight: formData.weight,
-      category: formData.category,
-      sender: formData.sender,
-      receiver: formData.receiver,
-      origin: formData.origin_address,
-      destination: formData.destination_address,
-      createdAt: new Date().toISOString(),
-    });
-  };
-
-  // Download QR code as PNG - Improved version
   const handleDownloadQrCode = () => {
     if (!qrCodeRef.current) return;
 
     const qrCodeElement = qrCodeRef.current.querySelector("canvas");
     if (!qrCodeElement) {
-      // If no canvas (happens with QRCode.react), try getting the SVG
       const svgElement = qrCodeRef.current.querySelector("svg");
       if (!svgElement) {
         console.error("No QR code element found");
         return;
       }
 
-      // Create a canvas with proper dimensions
       const canvas = document.createElement("canvas");
       const rect = svgElement.getBoundingClientRect();
       canvas.width = rect.width;
       canvas.height = rect.height;
 
-      // Convert SVG to data URL then to image
       const svgData = new XMLSerializer().serializeToString(svgElement);
       const svgBlob = new Blob([svgData], {
         type: "image/svg+xml;charset=utf-8",
@@ -323,7 +305,6 @@ export default function CreatePacketPage() {
         ctx.drawImage(img, 0, 0);
         DOMURL.revokeObjectURL(svgUrl);
 
-        // Download as PNG
         const pngUrl = canvas.toDataURL("image/png");
         const downloadLink = document.createElement("a");
         downloadLink.href = pngUrl;
@@ -335,7 +316,6 @@ export default function CreatePacketPage() {
 
       img.src = svgUrl;
     } else {
-      // QR code is already a canvas, just download it
       const pngUrl = qrCodeElement.toDataURL("image/png");
       const downloadLink = document.createElement("a");
       downloadLink.href = pngUrl;
@@ -358,9 +338,7 @@ export default function CreatePacketPage() {
               className="p-4 bg-white rounded-lg border border-gray-200"
               ref={qrCodeRef}
             >
-              <div ref={qrCodeRef}>
-                <QRCodeSVG value={generateQrData()} size={200} />
-              </div>
+              <QRCodeSVG value={qrCodeData || ""} size={200} />
             </div>
             <p className="text-sm text-gray-500 text-center">
               Print or download this QR code and attach it to the packet for
@@ -394,7 +372,6 @@ export default function CreatePacketPage() {
                 <Separator className="mb-4" />
               </div>
 
-              {/* Category */}
               <div>
                 <Label htmlFor="category" className="text-gray-700 font-medium">
                   Category
@@ -412,7 +389,6 @@ export default function CreatePacketPage() {
                 </Select>
               </div>
 
-              {/* Weight */}
               <div>
                 <Label htmlFor="weight" className="text-gray-700 font-medium">
                   Weight (kg)
@@ -430,7 +406,6 @@ export default function CreatePacketPage() {
                 />
               </div>
 
-              {/* Description */}
               <div className="md:col-span-2">
                 <Label
                   htmlFor="description"
@@ -449,7 +424,6 @@ export default function CreatePacketPage() {
                 />
               </div>
 
-              {/* Instructions */}
               <div className="md:col-span-3">
                 <Label
                   htmlFor="instructions"
@@ -468,15 +442,12 @@ export default function CreatePacketPage() {
               </div>
             </div>
 
-            {/* Sender and Receiver Information */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Sender Information */}
               <div className="border rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   Sender Information
                 </h3>
                 <Separator className="mb-4" />
-
                 <div className="space-y-4">
                   <div>
                     <Label
@@ -495,7 +466,6 @@ export default function CreatePacketPage() {
                       required
                     />
                   </div>
-
                   <div>
                     <Label
                       htmlFor="sender.email"
@@ -514,7 +484,6 @@ export default function CreatePacketPage() {
                       required
                     />
                   </div>
-
                   <div>
                     <Label
                       htmlFor="sender.phone_number"
@@ -535,13 +504,11 @@ export default function CreatePacketPage() {
                 </div>
               </div>
 
-              {/* Receiver Information */}
               <div className="border rounded-lg p-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">
                   Receiver Information
                 </h3>
                 <Separator className="mb-4" />
-
                 <div className="space-y-4">
                   <div>
                     <Label
@@ -560,7 +527,6 @@ export default function CreatePacketPage() {
                       required
                     />
                   </div>
-
                   <div>
                     <Label
                       htmlFor="receiver.email"
@@ -579,7 +545,6 @@ export default function CreatePacketPage() {
                       required
                     />
                   </div>
-
                   <div>
                     <Label
                       htmlFor="receiver.phone_number"
@@ -601,14 +566,12 @@ export default function CreatePacketPage() {
               </div>
             </div>
 
-            {/* Delivery Information */}
             <div className="border rounded-lg p-4">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">
                 Delivery Information
               </h3>
               <Separator className="mb-4" />
 
-              {/* Delivery Type */}
               <div className="mb-6">
                 <Label className="text-gray-700 font-medium block mb-2">
                   Delivery Option
@@ -632,7 +595,6 @@ export default function CreatePacketPage() {
                 </RadioGroup>
               </div>
 
-              {/* Origin Address */}
               <div className="mb-4">
                 <Label
                   htmlFor="origin_address"
@@ -653,7 +615,6 @@ export default function CreatePacketPage() {
                 </p>
               </div>
 
-              {/* Destination Hub (for pickup) */}
               {formData.delivery_type === "pickup" && (
                 <div>
                   <Label
@@ -688,7 +649,6 @@ export default function CreatePacketPage() {
                 </div>
               )}
 
-              {/* Delivery Address and Map (for delivery) */}
               {formData.delivery_type === "delivery" && (
                 <>
                   <div className="mb-4">
@@ -776,7 +736,6 @@ export default function CreatePacketPage() {
               )}
             </div>
 
-            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold py-2 rounded-lg"
