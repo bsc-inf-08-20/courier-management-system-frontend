@@ -18,13 +18,14 @@ export interface Customer {
     collected_at?: string;
     origin_hub_confirmed_at?: string;
     dispatched_at?: string;
-    destination_hub_confirmed_at?: string | null;
-    out_for_delivery_at?: string | null;
-    delivered_at?: string | null;
-    received_at?: string | null;
-    hub_confirmed_at?: string | null;
+    destination_hub_confirmed_at?: string;
+    out_for_delivery_at?: string;
+    delivered_at?: string;
+    received_at?: string;
+    hub_confirmed_at?: string;
     confirmed_by_origin?: boolean;
     assigned_vehicle?: Vehicle | null;
+    assigned_delivery_agent?: Agent | null;
     pickup?: {
       customer: Customer;
     };
@@ -43,6 +44,14 @@ export interface Customer {
     is_in_maintenance: boolean;
     current_city: string;
     destination_city?: string;
-    status: string; // Add status field
+    status: string;
     assigned_packets: Packet[];
+  }
+  
+  export interface Agent {
+    user_id: number;
+    name: string;
+    email: string;
+    phone_number: string;
+    city: string;
   }

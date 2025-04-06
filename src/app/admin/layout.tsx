@@ -116,6 +116,11 @@ export default function AdminLayout({
       title: "Receiving",
     },
     {
+      href: "/admin/deliver",
+      icon: Download,
+      title: "Deliver",
+    },
+    {
       href: "/admin/customers",
       icon: Users,
       title: "Customers",
