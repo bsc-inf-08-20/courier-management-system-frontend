@@ -22,7 +22,7 @@ interface Packet {
   destination_address: string;
 }
 
-export default function PacketsPage() {
+export default function Tracking() {
   const [packets, setPackets] = useState<Packet[]>([]);
   const [loading, setLoading] = useState(true);
 

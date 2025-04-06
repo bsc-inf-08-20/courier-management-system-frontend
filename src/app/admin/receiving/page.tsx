@@ -216,7 +216,10 @@ const ReceivePacketsPage = () => {
             </TableHeader>
             <TableBody>
               {packets.map((packet) => (
-                <TableRow key={`incoming-${packet.id}`} className="hover:bg-gray-50">
+                <TableRow
+                  key={`incoming-${packet.id}`}
+                  className="hover:bg-gray-50"
+                >
                   <TableCell>{packet.id}</TableCell>
                   <TableCell>{packet.description || "N/A"}</TableCell>
                   <TableCell>{packet.weight || 0} kg</TableCell>
@@ -262,8 +265,8 @@ const ReceivePacketsPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Package Receipt</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to confirm receipt of this package? This will
-              update its status to "At Destination Hub".
+              Are you sure you want to confirm receipt of this package? This
+              will update its status to "At Destination Hub".
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -52,8 +52,6 @@ export default function AdminLoginPage() {
       }
 
       localStorage.setItem("token", data.access_token);
-      
-      // Store refresh token if available
       if (data.refresh_token) {
         localStorage.setItem("refresh_token", data.refresh_token);
       }
@@ -76,7 +74,9 @@ export default function AdminLoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            {error && <p className="text-red-500 text-center text-sm">{error}</p>}
+            {error && (
+              <p className="text-red-500 text-center text-sm">{error}</p>
+            )}
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input

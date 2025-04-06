@@ -1,92 +1,13 @@
+// DispatchPacketsPage.tsx
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { toast } from "sonner";
-import { ChevronDown, ChevronUp, Truck, User } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
-interface Customer {
-  user_id: number;
-  name: string;
-  email: string;
-  phone_number: string;
-  city: string;
-}
-
-interface Packet {
-  id: number;
-  description: string;
-  status: string;
-  weight: number;
-  category: string;
-  origin_address: string;
-  destination_address: string;
-  collected_at?: string;
-  origin_hub_confirmed_at?: string;
-  dispatched_at?: string;
-  destination_hub_confirmed_at?: string | null;
-  out_for_delivery_at?: string | null;
-  delivered_at?: string | null;
-  received_at?: string | null;
-  hub_confirmed_at?: string | null;
-  assigned_driver?: Driver | null;
-  assigned_vehicle?: Vehicle | null;
-  pickup?: {
-    customer: Customer;
-  };
-}
-
-interface PickupRequest {
-  id: number;
-  pickup_address: string;
-  destination_address: string;
-  status: string;
-  created_at: string;
-  customer: Customer;
-  packet: Packet;
-}
-
-interface Driver {
-  user_id: number;
-  name: string;
-  email: string;
-  phone_number: string;
-  city: string;
-  role: string;
-}
-
-interface Vehicle {
-  id: number;
-  make: string;
-  model: string;
-  year: number;
-  license_plate: string;
-  vehicle_type: string;
-  capacity: number;
-  is_active: boolean;
-  is_in_maintenance: boolean;
-  current_city: string;
-}
+import VehiclesList from "@/components/admin/dispatch/VehiclesList";
+import PacketsTable from "@/components/admin/dispatch/PacketsTable";
+import InTransitTable from "@/components/admin/dispatch/InTransitTable";
+import { toast } from "sonner";
+import { Packet, Vehicle } from "@/types/types"; // Import shared types
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
@@ -96,18 +17,11 @@ function getErrorMessage(error: unknown): string {
 
 const DispatchPacketsPage = () => {
   const [packets, setPackets] = useState<Packet[]>([]);
-  const [drivers, setDrivers] = useState<Driver[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [adminCity, setAdminCity] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<string>("ready-for-dispatch");
   const [hasMounted, setHasMounted] = useState(false);
-
-  const [selectedPackets, setSelectedPackets] = useState<number[]>([]);
-  const [expandedPacket, setExpandedPacket] = useState<number | null>(null);
-  const [selectedDriver, setSelectedDriver] = useState<number | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<number | null>(null);
-  const [showConfirmationDialog, setShowConfirmationDialog] = useState(false);
   const [inTransitPackets, setInTransitPackets] = useState<Packet[]>([]);
 
   useEffect(() => {
@@ -130,43 +44,30 @@ const DispatchPacketsPage = () => {
         const adminRes = await fetch("http://localhost:3001/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
-        if (!adminRes.ok) {
-          const errorData = await adminRes.json();
-          throw new Error(errorData.message || "Failed to fetch admin data");
-        }
+        if (!adminRes.ok) throw new Error("Failed to fetch admin data");
         const adminData = await adminRes.json();
         setAdminCity(adminData.city || "");
 
-        const [driversRes, vehiclesRes, readyPacketsRes, inTransitRes] =
-          await Promise.all([
-            fetch(
-              `http://localhost:3001/users/city/drivers?city=${adminData.city}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            ),
-            fetch(`http://localhost:3001/vehicles?city=${adminData.city}`, {
-              headers: { Authorization: `Bearer ${token}` } }
-            ),
-            fetch(
-              `http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            ),
-            fetch(
-              `http://localhost:3001/packets/in-transit?origin=${adminData.city}`,
-              { headers: { Authorization: `Bearer ${token}` } }
-            ),
-          ]);
+        const [vehiclesRes, readyPacketsRes, inTransitRes] = await Promise.all([
+          fetch(`http://localhost:3001/packets/available-vehicles?city=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3001/packets/in-transit?origin=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        if (!driversRes.ok) throw new Error("Failed to fetch drivers");
         if (!vehiclesRes.ok) throw new Error("Failed to fetch vehicles");
         if (!readyPacketsRes.ok) throw new Error("Failed to fetch ready packets");
         if (!inTransitRes.ok) throw new Error("Failed to fetch in-transit packets");
 
-        const driversData = await driversRes.json();
         const vehiclesData = await vehiclesRes.json();
         const readyPacketsData = await readyPacketsRes.json();
         const inTransitData = await inTransitRes.json();
 
-        setDrivers(Array.isArray(driversData) ? driversData : []);
         setVehicles(Array.isArray(vehiclesData) ? vehiclesData : []);
         setPackets(Array.isArray(readyPacketsData) ? readyPacketsData : []);
 
@@ -180,8 +81,6 @@ const DispatchPacketsPage = () => {
       } catch (error) {
         console.error("Fetch error:", error);
         toast.error(getErrorMessage(error));
-        setPackets([]);
-        setInTransitPackets([]);
       } finally {
         setLoading(false);
       }
@@ -189,140 +88,6 @@ const DispatchPacketsPage = () => {
 
     fetchData();
   }, [hasMounted]);
-
-  const togglePacketSelection = (id: number) => {
-    setSelectedPackets((prev) =>
-      prev.includes(id) ? prev.filter((pid) => pid !== id) : [...prev, id]
-    );
-  };
-
-  const toggleExpandPacket = (id: number) => {
-    setExpandedPacket(expandedPacket === id ? null : id);
-    if (expandedPacket !== id) {
-      setSelectedDriver(null);
-      setSelectedVehicle(null);
-    }
-  };
-
-  const validateDispatch = () => {
-    if (!selectedDriver) {
-      toast.error("Please select a driver");
-      return false;
-    }
-    if (!selectedVehicle) {
-      toast.error("Please select a vehicle");
-      return false;
-    }
-    if (selectedPackets.length === 0) {
-      toast.error("Please select at least one packet");
-      return false;
-    }
-
-    const totalWeight = selectedPackets.reduce((sum, pid) => {
-      const packet = packets.find((p) => p.id === pid);
-      return sum + (packet?.weight || 0);
-    }, 0);
-
-    const vehicle = vehicles.find((v) => v.id === selectedVehicle);
-    if (vehicle && totalWeight > vehicle.capacity) {
-      toast.error(
-        `Total weight (${totalWeight}kg) exceeds vehicle capacity (${vehicle.capacity}kg)`
-      );
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleDispatchConfirmation = () => {
-    if (validateDispatch()) setShowConfirmationDialog(true);
-  };
-
-  const dispatchPackets = async () => {
-    if (!validateDispatch()) return;
-
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Authentication token not found");
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        "http://localhost:3001/packets/dispatch-batch",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            packetIds: selectedPackets,
-            driverId: selectedDriver,
-            vehicleId: selectedVehicle,
-          }),
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to dispatch packets");
-      }
-
-      toast.success("Packets dispatched successfully");
-
-      // Update local state
-      const updatedPackets = packets.filter(
-        (p) => !selectedPackets.includes(p.id)
-      );
-      setPackets(updatedPackets);
-      setSelectedPackets([]);
-      setSelectedDriver(null);
-      setSelectedVehicle(null);
-      setExpandedPacket(null);
-
-      // Refresh in-transit packets
-      const inTransitRes = await fetch(
-        `http://localhost:3001/packets/in-transit?origin=${adminCity}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      if (!inTransitRes.ok) throw new Error("Failed to fetch updated in-transit packets");
-      const inTransitData = await inTransitRes.json();
-      const inTransitArray = Array.isArray(inTransitData)
-        ? inTransitData
-        : Array.isArray(inTransitData?.data)
-        ? inTransitData.data
-        : [];
-      setInTransitPackets(inTransitArray);
-    } catch (error) {
-      console.error("Dispatch error:", error);
-      toast.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-      setShowConfirmationDialog(false);
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    const statusMap: Record<string, { text: string; color: string }> = {
-      at_origin_hub: {
-        text: "Ready for Dispatch",
-        color: "bg-amber-100 text-amber-800",
-      },
-      in_transit: { text: "In Transit", color: "bg-blue-100 text-blue-800" },
-    };
-    const statusInfo = statusMap[status] || {
-      text: status,
-      color: "bg-gray-100 text-gray-800",
-    };
-    return <Badge className={statusInfo.color}>{statusInfo.text}</Badge>;
-  };
-
-  const formatDate = (dateString?: string | null) => {
-    if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleString();
-  };
 
   if (!hasMounted) {
     return <div className="p-6 text-center">Loading...</div>;
@@ -333,6 +98,8 @@ const DispatchPacketsPage = () => {
       <h2 className="text-2xl font-bold mb-4 text-center">
         Inter-hub Dispatching ({adminCity || "Loading..."})
       </h2>
+
+      <VehiclesList vehicles={vehicles} setVehicles={setVehicles} adminCity={adminCity} />
 
       <Tabs defaultValue="ready-for-dispatch" onValueChange={setActiveTab}>
         <TabsList className="w-full mb-6">
@@ -345,255 +112,20 @@ const DispatchPacketsPage = () => {
         </TabsList>
 
         <TabsContent value="ready-for-dispatch">
-          {loading && packets.length === 0 ? (
-            <p className="text-center py-6">Loading packets...</p>
-          ) : packets.length === 0 ? (
-            <p className="text-center py-6">No packets ready for dispatch</p>
-          ) : (
-            <>
-              {selectedPackets.length > 0 && (
-                <div className="mb-4 p-3 bg-blue-50 rounded-md flex justify-between items-center">
-                  <span>{selectedPackets.length} packet(s) selected</span>
-                  <Button
-                    onClick={() => setExpandedPacket(selectedPackets[0])}
-                    disabled={loading}
-                  >
-                    Assign Driver & Vehicle
-                  </Button>
-                </div>
-              )}
-
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10"></TableHead>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Weight</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Origin</TableHead>
-                      <TableHead>Destination</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="w-10"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {packets.map((packet) => (
-                      <React.Fragment key={`packet-${packet.id}`}>
-                        <TableRow className="hover:bg-gray-50">
-                          <TableCell>
-                            <input
-                              type="checkbox"
-                              checked={selectedPackets.includes(packet.id)}
-                              onChange={() => togglePacketSelection(packet.id)}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                              disabled={loading}
-                            />
-                          </TableCell>
-                          <TableCell>{packet.id}</TableCell>
-                          <TableCell>{packet.description || "N/A"}</TableCell>
-                          <TableCell>{packet.weight || 0} kg</TableCell>
-                          <TableCell>{packet.category || "N/A"}</TableCell>
-                          <TableCell>{packet.origin_address || "N/A"}</TableCell>
-                          <TableCell>{packet.destination_address || "N/A"}</TableCell>
-                          <TableCell>{getStatusBadge(packet.status || "")}</TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => toggleExpandPacket(packet.id)}
-                              disabled={loading}
-                            >
-                              {expandedPacket === packet.id ? (
-                                <ChevronUp className="h-4 w-4" />
-                              ) : (
-                                <ChevronDown className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-
-                        {expandedPacket === packet.id && (
-                          <TableRow>
-                            <TableCell colSpan={9} className="bg-gray-50 p-4">
-                              <div className="space-y-6">
-                                <div>
-                                  <h3 className="text-lg font-medium mb-3 flex items-center">
-                                    <User className="mr-2 h-4 w-4" />
-                                    Select Driver
-                                  </h3>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {drivers.length > 0 ? (
-                                      drivers.map((driver) => (
-                                        <div
-                                          key={`driver-${driver.user_id}`}
-                                          className={`border p-3 rounded-md cursor-pointer ${
-                                            selectedDriver === driver.user_id
-                                              ? "border-blue-500 bg-blue-50"
-                                              : "hover:bg-gray-50"
-                                          }`}
-                                          onClick={() =>
-                                            setSelectedDriver(driver.user_id)
-                                          }
-                                        >
-                                          <p className="font-medium">
-                                            {driver.name}
-                                          </p>
-                                          <p className="text-sm text-gray-600">
-                                            {driver.phone_number}
-                                          </p>
-                                        </div>
-                                      ))
-                                    ) : (
-                                      <p>No drivers available in {adminCity}</p>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div>
-                                  <h3 className="text-lg font-medium mb-3 flex items-center">
-                                    <Truck className="mr-2 h-4 w-4" />
-                                    Select Vehicle
-                                  </h3>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {vehicles.length > 0 ? (
-                                      vehicles
-                                        .filter(
-                                          (v) =>
-                                            v.is_active && !v.is_in_maintenance
-                                        )
-                                        .map((vehicle) => (
-                                          <div
-                                            key={`vehicle-${vehicle.id}`}
-                                            className={`border p-3 rounded-md cursor-pointer ${
-                                              selectedVehicle === vehicle.id
-                                                ? "border-blue-500 bg-blue-50"
-                                                : "hover:bg-gray-50"
-                                            }`}
-                                            onClick={() =>
-                                              setSelectedVehicle(vehicle.id)
-                                            }
-                                          >
-                                            <p className="font-medium">
-                                              {vehicle.make} {vehicle.model} (
-                                              {vehicle.year})
-                                            </p>
-                                            <p className="text-sm text-gray-600">
-                                              License: {vehicle.license_plate}
-                                            </p>
-                                            <p className="text-sm text-gray-600">
-                                              Capacity: {vehicle.capacity} kg
-                                            </p>
-                                          </div>
-                                        ))
-                                    ) : (
-                                      <p>
-                                        No vehicles available in {adminCity}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-
-                                <div className="flex justify-end">
-                                  <Button
-                                    onClick={handleDispatchConfirmation}
-                                    disabled={
-                                      !selectedDriver ||
-                                      !selectedVehicle ||
-                                      selectedPackets.length === 0 ||
-                                      loading
-                                    }
-                                  >
-                                    {loading
-                                      ? "Processing..."
-                                      : "Dispatch Selected Packets"}
-                                  </Button>
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        )}
-                      </React.Fragment>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            </>
-          )}
+          <PacketsTable
+            packets={packets}
+            setPackets={setPackets}
+            vehicles={vehicles}
+            setVehicles={setVehicles}
+            adminCity={adminCity}
+            loading={loading}
+          />
         </TabsContent>
 
         <TabsContent value="in-transit">
-          {loading && inTransitPackets.length === 0 ? (
-            <p className="text-center py-6">Loading in-transit packets...</p>
-          ) : inTransitPackets.length === 0 ? (
-            <p className="text-center py-6">No packets in transit</p>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Weight</TableHead>
-                    <TableHead>Origin</TableHead>
-                    <TableHead>Destination</TableHead>
-                    <TableHead>Dispatched At</TableHead>
-                    <TableHead>Driver</TableHead>
-                    <TableHead>Vehicle</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {inTransitPackets.map((packet) => (
-                    <TableRow
-                      key={`in-transit-${packet.id}`}
-                      className="hover:bg-gray-50"
-                    >
-                      <TableCell>{packet.id}</TableCell>
-                      <TableCell>{packet.description || "N/A"}</TableCell>
-                      <TableCell>{packet.weight || 0} kg</TableCell>
-                      <TableCell>{packet.origin_address || "N/A"}</TableCell>
-                      <TableCell>{packet.destination_address || "N/A"}</TableCell>
-                      <TableCell>
-                        {formatDate(packet.dispatched_at)}
-                      </TableCell>
-                      <TableCell>
-                        {packet.assigned_driver?.name || "N/A"}
-                      </TableCell>
-                      <TableCell>
-                        {packet.assigned_vehicle
-                          ? `${packet.assigned_vehicle.make} ${packet.assigned_vehicle.model}`
-                          : "N/A"}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+          <InTransitTable packets={inTransitPackets} loading={loading} />
         </TabsContent>
       </Tabs>
-
-      <AlertDialog
-        open={showConfirmationDialog}
-        onOpenChange={setShowConfirmationDialog}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Confirm Dispatch</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to dispatch {selectedPackets.length} packet(s)
-              with the selected driver and vehicle?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={dispatchPackets} disabled={loading}>
-              {loading ? "Processing..." : "Confirm Dispatch"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 };
