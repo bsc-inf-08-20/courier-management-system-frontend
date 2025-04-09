@@ -105,6 +105,7 @@ const DeliveryPage = () => {
         throw new Error("Failed to assign agent");
       }
     } catch (error) {
+      console.error("Error assigning agent:", error);
       toast.error("Failed to assign agent");
     } finally {
       setLoading(false);
@@ -135,6 +136,7 @@ const DeliveryPage = () => {
         throw new Error("Failed to unassign agent");
       }
     } catch (error) {
+      console.error("Error assigning agent:", error);
       toast.error("Failed to unassign agent");
     } finally {
       setLoading(false);
@@ -158,16 +160,20 @@ const DeliveryPage = () => {
 
       if (res.ok) {
         const updatedPacket = await res.json();
+        console.log(updatedPacket)
         setPackets((prev) =>
           prev.filter((p) => p.id !== packetId) // Remove delivered packet from list
         );
         toast.success("Delivery confirmed successfully.");
       } else {
+        
         throw new Error("Failed to confirm delivery");
       }
     } catch (error) {
-      toast.error("Failed to confirm delivery");
+     console.log(error)
+     toast.error("Failed to confirm delivery");
     } finally {
+      
       setLoading(false);
       setConfirmDeliveryId(null);
     }

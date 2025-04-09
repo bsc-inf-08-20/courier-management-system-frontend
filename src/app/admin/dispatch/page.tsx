@@ -20,7 +20,7 @@ const DispatchPacketsPage = () => {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [adminCity, setAdminCity] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("ready-for-dispatch");
+  const [, setActiveTab] = useState<string>("ready-for-dispatch");
   const [hasMounted, setHasMounted] = useState(false);
   const [inTransitPackets, setInTransitPackets] = useState<Packet[]>([]);
 

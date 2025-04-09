@@ -155,7 +155,7 @@ export default function AgentPage() {
                     <AlertDialogHeader>
                       <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to delete {user.name}'s agent
+                        Are you sure you want to delete {user.name}&apos;s agent
                         account? This action cannot be undone.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
