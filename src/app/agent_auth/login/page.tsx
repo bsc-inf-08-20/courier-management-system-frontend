@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,7 +48,7 @@ export default function AgentLoginPage() {
 
       // Redirect to agent dashboard
       router.push("/agent_components");
-    } catch (err) {
+    } catch {
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
@@ -90,7 +90,7 @@ export default function AgentLoginPage() {
 
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
-            Don't have an agent account?{" "}
+            Don&apos;t have an agent account?{" "}
             <Link href="/agent-apply" className="text-blue-600 font-semibold hover:underline">
               Apply to be an Agent
             </Link>

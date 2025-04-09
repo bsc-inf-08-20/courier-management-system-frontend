@@ -126,7 +126,7 @@ export default function CustomersPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete {user.name}'s account?
+                          Are you sure you want to delete {user.name}&rsquo;s account?
                           This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>

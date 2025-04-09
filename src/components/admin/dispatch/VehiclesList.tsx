@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ChevronDown, ChevronUp, Truck } from "lucide-react";
 import { toast } from "sonner";
-import { Packet, Vehicle } from "@/types/types";
+import {Vehicle } from "@/types/types";
 
 interface VehiclesListProps {
   vehicles: Vehicle[];
@@ -48,6 +48,7 @@ const VehiclesList: React.FC<VehiclesListProps> = ({ vehicles, setVehicles, admi
 
   const handleUnassignPacket = async (packetId: number, vehicleId: number) => {
     const token = localStorage.getItem("token");
+    console.log(vehicleId);
     if (!token) {
       toast.error("Authentication token not found");
       return;

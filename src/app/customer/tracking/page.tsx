@@ -7,13 +7,23 @@ import { CheckCircle, Truck, Package, MapPin } from "lucide-react";
 import { useState } from "react";
 import { motion } from "framer-motion";
 
+interface StatusItem {
+  status: "Pending Pick-Up" | "Picked Up" | "In Transit" | "Out for Delivery" | "Delivered";
+  timestamp: string;
+}
+
+interface TrackingData {
+  id: string;
+  statuses: StatusItem[];
+}
+
 export default function Tracking() {
   const [trackingId, setTrackingId] = useState("");
-  const [trackingResult, setTrackingResult] = useState<any>(null);
+  const [trackingResult, setTrackingResult] = useState<TrackingData | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const mockData = {
+  const mockData: TrackingData = {
     id: "12345",
     statuses: [
       { status: "Pending Pick-Up", timestamp: "2025-03-04 08:00 AM" },
@@ -75,7 +85,7 @@ export default function Tracking() {
               Booking #{trackingResult.id}
             </h3>
             <div className="space-y-4">
-              {trackingResult.statuses.map((s: any, i: number) => (
+              {trackingResult.statuses.map((s, i) => (
                 <div key={i} className="flex items-center gap-4">
                   {s.status === "Delivered" ? (
                     <CheckCircle className="h-5 w-5 text-green-600" />

@@ -24,7 +24,7 @@ export default function AdminLoginPage() {
         if (payload.exp * 1000 > Date.now() && payload.role === "ADMIN") {
           router.push("/admin");
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem("token");
         localStorage.removeItem("refresh_token");
       }
@@ -58,7 +58,7 @@ export default function AdminLoginPage() {
 
       toast.success("Logged in successfully");
       router.push("/admin");
-    } catch (err) {
+    } catch {
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
