@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState} from "react";
 import { usePathname } from "next/navigation"; // Import usePathname
 import { useRouter } from "next/navigation"; 
 import {
@@ -150,12 +150,14 @@ export default function AgentLayout({
               className="w-48 bg-white shadow-lg rounded-md"
             >
               <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
-              onClick={() => router.push("/agent_components/profile")}
+              onClick={() => router.push("/agent/profile")}
               >
                 <User className="h-4 w-4" />
                 <span>Account</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100">
+              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+              onClick={() => router.push("/agent_auth/login")}
+              >
                 <LogOut className="h-4 w-4" />
                 <span>Logout</span>
               </DropdownMenuItem>

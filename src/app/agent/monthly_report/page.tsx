@@ -18,15 +18,60 @@ export default function MonthlyReportPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [pickups, setPickups] = useState<Pickup[]>([]);
 
+  // useEffect(() => {
+  //   // Mock data for testing
+  //   const mockData = [
+  //     {
+  //       id: "1",
+  //       goodId: "G123",
+  //       customerName: "John Doe",
+  //       weight: 12.5,
+  //       date: "2025-04-01",
+  //       time: "10:00 AM",
+  //       status: "Pending"
+  //     },
+  //     {
+  //       id: "2",
+  //       goodId: "G124",
+  //       customerName: "Jane Smith",
+  //       weight: 8.2,
+  //       date: "2025-04-02",
+  //       time: "11:00 AM",
+  //       status: "Complete"
+  //     }
+  //   ];
+  
+  //   setPickups(mockData); // Use mock data for testing
+  // }, []);
+  
+
   useEffect(() => {
-    // Fetch the data dynamically (replace with actual API call)
     async function fetchPickups() {
-      const response = await fetch("/api/pickups"); // Adjust API endpoint
+      const response = await fetch("http://localhost:3001/agent-confirm-pickup");
       const data = await response.json();
-      setPickups(data);
+      
+      console.log(data);  // Log to check the data format
+      
+      // Ensure data is an array before setting it
+      if (Array.isArray(data)) {
+        setPickups(data);
+      } else {
+        console.error("Fetched data is not an array:", data);
+      }
     }
+  
     fetchPickups();
   }, []);
+
+  // useEffect(() => {
+  //   // Fetch the data dynamically (replace with actual API call)
+  //   async function fetchPickups() {
+  //     const response = await fetch("http://localhost:3001/agent-confirm-pickup"); // Adjust API endpoint
+  //     const data = await response.json();
+  //     setPickups(data);
+  //   }
+  //   fetchPickups();
+  // }, []);
 
   const filteredData = pickups.filter((item) => item.id.includes(searchQuery));
 
