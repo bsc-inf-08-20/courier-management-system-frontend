@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toast } from "sonner";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface UnassignedRequestsProps {
@@ -21,7 +20,7 @@ interface UnassignedRequestsProps {
   onAssignAgent: (requestId: number, agentId: number) => Promise<void>;
 }
 
-export const UnassignedRequests = ({
+ export const UnassignedRequests = ({
   requests,
   agents,
   adminCity,
@@ -153,6 +152,8 @@ export const UnassignedRequests = ({
     </div>
   );
 };
+
+export default UnassignedRequests;
 
 interface Customer {
   user_id: number;

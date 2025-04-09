@@ -1,10 +1,21 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { Line, Pie, Bar } from "react-chartjs-2";
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, LineElement, PointElement, ChartOptions } from "chart.js";
 import ChartDataLabels from "chartjs-plugin-datalabels";
 import axios from "axios";
+
+// Define types for your data
+interface WeightRange {
+  range: string;
+  count: number;
+}
+
+interface GoodsData {
+  weightRanges: WeightRange[];
+  weightHistogram: WeightRange[];
+}
 
 // Register Chart.js components
 ChartJS.register(
@@ -21,17 +32,16 @@ ChartJS.register(
 )
 
 const Dashboard = () => {
-  const [goodsData, setGoodsData] = useState<any>(null);
-  const [dailyGoodsData, setDailyGoodsData] = useState<any>(null);
+  const [goodsData, setGoodsData] = useState<GoodsData | null>(null);
+  const [dailyGoodsData, setDailyGoodsData] = useState<GoodsData | null>(null);
   const [lastResetDate, setLastResetDate] = useState<string>('');
 
   // Function to fetch data from the backend
   const fetchData = async () => {
     try {
-      const response = await axios.get("https://your-api-url.com/goods"); // put the actual API endpoint
-      const data = response.data;
-      setGoodsData(data);
-      setDailyGoodsData(data); // Set daily data initially as well
+      const response = await axios.get<GoodsData>("https://your-api-url.com/goods");
+      setGoodsData(response.data);
+      setDailyGoodsData(response.data); // Set daily data initially as well
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -39,7 +49,7 @@ const Dashboard = () => {
  
   // this data is for testing only, when i connect with the backend its when i will remove this data, sice the information will be retreived from the database
   useEffect(() => {
-    const initialData = {
+    const initialData: GoodsData = {
       weightRanges: [
         { range: '0.1-20', count: 10 },
         { range: '20.1-40', count: 7 },
@@ -106,10 +116,10 @@ const Dashboard = () => {
 
   // Pie Chart Data (Weight Range Distribution)
   const pieChartData = {
-    labels: goodsData.weightRanges.map((item: any) => item.range),
+    labels: goodsData.weightRanges.map((item) => item.range),
     datasets: [
       {
-        data: goodsData.weightRanges.map((item: any) => item.count),
+        data: goodsData.weightRanges.map((item) => item.count),
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF5733'],
       },
     ],
@@ -117,11 +127,11 @@ const Dashboard = () => {
 
   // Bar Chart Data (Weight Distribution Histogram)
   const barChartData = {
-    labels: goodsData.weightHistogram.map((item: any) => item.range),
+    labels: goodsData.weightHistogram.map((item) => item.range),
     datasets: [
       {
         label: 'Goods Count',
-        data: goodsData.weightHistogram.map((item: any) => item.count),
+        data: goodsData.weightHistogram.map((item) => item.count),
         backgroundColor: '#4BC0C0',
       },
     ],
@@ -129,11 +139,11 @@ const Dashboard = () => {
 
   // Line Chart Data (Trend of Goods in Weight Ranges)
   const lineChartData = {
-    labels: goodsData.weightRanges.map((item: any) => item.range),
+    labels: goodsData.weightRanges.map((item) => item.range),
     datasets: [
       {
         label: 'Goods Weight Range (kg)',
-        data: goodsData.weightRanges.map((item: any) => item.count),
+        data: goodsData.weightRanges.map((item) => item.count),
         borderColor: '#FF5733',
         backgroundColor: 'rgba(255, 87, 51, 0.2)',
         tension: 0.4,
@@ -143,10 +153,10 @@ const Dashboard = () => {
 
   // Daily Data Pie Chart
   const dailyPieChartData = {
-    labels: dailyGoodsData.weightRanges.map((item: any) => item.range),
+    labels: dailyGoodsData.weightRanges.map((item) => item.range),
     datasets: [
       {
-        data: dailyGoodsData.weightRanges.map((item: any) => item.count),
+        data: dailyGoodsData.weightRanges.map((item) => item.count),
         backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#FF5733'],
       },
     ],
@@ -154,11 +164,11 @@ const Dashboard = () => {
 
   // Daily Data Bar Chart
   const dailyBarChartData = {
-    labels: dailyGoodsData.weightHistogram.map((item: any) => item.range),
+    labels: dailyGoodsData.weightHistogram.map((item) => item.range),
     datasets: [
       {
         label: 'Goods Count (Daily)',
-        data: dailyGoodsData.weightHistogram.map((item: any) => item.count),
+        data: dailyGoodsData.weightHistogram.map((item) => item.count),
         backgroundColor: '#4BC0C0',
       },
     ],
@@ -181,7 +191,7 @@ const Dashboard = () => {
       x: {
         title: {
           display: true,
-          text: 'Weight Range (kg)', // Label for horizontal axis
+          text: 'Weight Range (kg)',
           font: {
             size: 16,
             weight: 'bold',
@@ -191,7 +201,7 @@ const Dashboard = () => {
       y: {
         title: {
           display: true,
-          text: 'Amount of Goods', // Label for vertical axis
+          text: 'Amount of Goods',
           font: {
             size: 16,
             weight: 'bold',

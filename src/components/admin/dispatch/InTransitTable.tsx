@@ -1,7 +1,7 @@
 // InTransitTable.tsx
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Packet, Vehicle } from "@/types/types";
+import { Packet } from "@/types/types";
 
 interface InTransitTableProps {
   packets: Packet[];

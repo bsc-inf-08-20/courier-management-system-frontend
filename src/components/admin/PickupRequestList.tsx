@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import AgentList from "./AgentList";
-import AssignAgent from "./UnassignedRequests";
 
 interface PickupRequest {
   id: number;

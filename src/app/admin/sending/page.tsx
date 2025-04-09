@@ -49,7 +49,6 @@ const HUB_LOCATIONS = [
 ];
 
 export default function CreatePacketPage() {
-  const router = useRouter();
   const [formData, setFormData] = useState({
     description: "",
     weight: "",
@@ -82,12 +81,12 @@ export default function CreatePacketPage() {
   useAuth("ADMIN");
 
   useEffect(() => {
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: "/images/marker-icon.png",
-      iconRetinaUrl: "/images/marker-icon-2x.png",
-      shadowUrl: "/images/marker-shadow.png",
-    });
+    delete (L.Icon.Default.prototype as { _getIconUrl?: string })._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconUrl: "/images/marker-icon.png",
+    iconRetinaUrl: "/images/marker-icon-2x.png",
+    shadowUrl: "/images/marker-shadow.png",
+  });
 
     const fetchAdminData = async () => {
       setLoading(true);
@@ -260,10 +259,12 @@ export default function CreatePacketPage() {
         },
       });
       setMapPosition(null);
-    } catch (error: any) {
-      toast.error(error.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    } catch (error: unknown) {
+      let errorMessage = "Something went wrong";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      toast.error(errorMessage);
     }
   };
 

@@ -4,13 +4,10 @@ import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import {
-  Truck,
   Users,
-  Package,
   Menu,
   User,
   LogOut,
-  Box,
   ChevronLeft,
   ChevronRight,
   LayoutDashboard,

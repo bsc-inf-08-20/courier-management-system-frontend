@@ -28,14 +28,14 @@ const LoginPage = () => {
           if (credentials.username && credentials.password) {
             resolve("Success");
           } else {
-            reject("Invalid credentials");
+            reject(new Error("Invalid credentials"));
           }
         }, 1000);
       });
 
       console.log("Login successful");
     } catch (err) {
-      setError(err as string);
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +86,7 @@ const LoginPage = () => {
           </button>
         </form>
         <p className="text-center mt-4 text-black">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link
             href="/agent_auth/registration"
             className="text-blue-600 hover:underline"

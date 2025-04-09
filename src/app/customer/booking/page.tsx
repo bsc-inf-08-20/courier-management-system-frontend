@@ -12,7 +12,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { Package, Truck } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 
 export default function Booking() {
@@ -27,7 +26,7 @@ export default function Booking() {
     pickupTime: "",
   });
 
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Handle input changes
