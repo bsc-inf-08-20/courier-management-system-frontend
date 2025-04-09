@@ -210,7 +210,7 @@ const UnassignedRequests = ({
 const BookPickupRequestsPage = () => {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [, setLoading] = useState(false);
   const [filteredRequests, setFilteredRequests] = useState<PickupRequest[]>([]);
   const [filterType, setFilterType] = useState<
     "unassigned" | "assigned" | "collected" | "delivered"
@@ -346,6 +346,7 @@ const BookPickupRequestsPage = () => {
         throw new Error("Failed to assign agent");
       }
     } catch (error) {
+      console.error("Error assigning agent:", error);
       toast.error("Failed to assign agent");
     } finally {
       setLoading(false);
@@ -390,6 +391,7 @@ const BookPickupRequestsPage = () => {
         throw new Error("Failed to remove agent");
       }
     } catch (error) {
+      console.error("Error assigning agent:", error);
       toast.error("Failed to remove agent");
     } finally {
       setLoading(false);
@@ -433,6 +435,7 @@ const BookPickupRequestsPage = () => {
         throw new Error("Failed to confirm hub arrival");
       }
     } catch (error) {
+      console.error("Error assigning agent:", error);
       toast.error("Failed to confirm hub arrival");
     } finally {
       setLoading(false);
