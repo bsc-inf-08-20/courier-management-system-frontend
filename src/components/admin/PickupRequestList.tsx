@@ -27,7 +27,7 @@ interface Props {
 
 export default function PickupRequestList({ requests, setRequests }: Props) {
   const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
-
+  console.log(setRequests)
   return (
     <Table>
       <TableHeader>
