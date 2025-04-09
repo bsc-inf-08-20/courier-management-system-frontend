@@ -9,9 +9,17 @@ interface Agent {
   name: string;
 }
 
+interface PickupRequest {
+  id: number;
+  pickup_address: string;
+  destination_address: string;
+  status: string;
+  assignedAgentUserId: number | null;
+}
+
 interface Props {
   requestId: number;
-  setRequests: (requests: any) => void;
+  setRequests: (requests: PickupRequest[]) => void;
 }
 
 export default function AgentList({ requestId, setRequests }: Props) {
@@ -24,8 +32,13 @@ export default function AgentList({ requestId, setRequests }: Props) {
     fetch("http://localhost:3001/users/role/agent", {
       headers: { Authorization: `Bearer ${token}` },
     })
-      .then((res) => res.json())
-      .then((data) => setAgents(data))
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch agents");
+        }
+        return res.json();
+      })
+      .then((data: Agent[]) => setAgents(data))
       .catch((err) => console.error("Failed to fetch agents", err));
   }, []);
 
