@@ -35,30 +35,38 @@ export default function AdminLoginPage() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
+  
     try {
-      const res = await fetch("http://localhost:3001/auth/login", {
+      const res = await fetch("http://localhost:3001/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await res.json();
       setLoading(false);
-
+  
       if (!res.ok) {
         setError(data.message || "Invalid credentials");
         return;
       }
-
+  
+      // Decode the JWT token to check the role
+      const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+      
+      if (payload.role !== "ADMIN") {
+        setError("Access denied. Admin privileges required.");
+        return;
+      }
+  
       localStorage.setItem("token", data.access_token);
       if (data.refresh_token) {
         localStorage.setItem("refresh_token", data.refresh_token);
       }
-
+  
       toast.success("Logged in successfully");
       router.push("/admin");
-    } catch {
+    } catch (error) {
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
