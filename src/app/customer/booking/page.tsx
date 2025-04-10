@@ -1,4 +1,6 @@
 "use client";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/customer/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,27 +12,30 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Package, Truck } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 
 export default function Booking() {
-  // Form state
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [formData, setFormData] = useState({
     packageType: "",
     weight: "",
     instructions: "",
+    packageDescription: "",
     pickupLocation: "",
     deliveryLocation: "",
-    pickupOption: "agent" as "agent" | "hub",
     pickupTime: "",
   });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Handle input changes
+  useEffect(() => {
+    if (!isAuthenticated) router.push("/customer/auth");
+  }, [isAuthenticated, router]);
+
   const handleChange = (field: keyof typeof formData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -38,18 +43,14 @@ export default function Booking() {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.packageType)
-      newErrors.packageType = "Package type is required";
-    if (!formData.pickupLocation)
-      newErrors.pickupLocation = "Pick-up location is required";
-    if (!formData.deliveryLocation)
-      newErrors.deliveryLocation = "Delivery location is required";
-    if (formData.pickupOption === "agent" && !formData.pickupTime)
-      newErrors.pickupTime = "Pick-up time is required";
+    if (!formData.packageType) newErrors.packageType = "Package type is required";
+    if (!formData.pickupLocation) newErrors.pickupLocation = "Pick-up location is required";
+    if (!formData.deliveryLocation) newErrors.deliveryLocation = "Delivery location is required";
+    if (!formData.packageDescription) newErrors.packageDescription = "Package description is required";
+    if (!formData.pickupTime) newErrors.pickupTime = "Pick-up time is required";
     return newErrors;
   };
 
-  // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const validationErrors = validateForm();
@@ -61,6 +62,8 @@ export default function Booking() {
     setIsSubmitted(true);
   };
 
+  if (!isAuthenticated) return null;
+
   if (isSubmitted) {
     return (
       <div className="min-h-screen min-w-full bg-gray-50 flex flex-col">
@@ -70,7 +73,7 @@ export default function Booking() {
             Booking Confirmed!
           </h2>
           <p>Your booking ID is #12345. You’ll receive a confirmation soon.</p>
-          <Link href="/tracking">
+          <Link href="/customer/tracking">
             <Button className="mt-4">Track Your Package</Button>
           </Link>
         </main>
@@ -79,15 +82,13 @@ export default function Booking() {
   }
 
   return (
-    <div className="w-full">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
-      {/* Booking Form */}
-      <main className="flex-grow max-w-2xl  mx-auto px-4 py-8">
+      <main className="flex-grow max-w-2xl mx-auto px-4 py-8">
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
           Book a Courier
         </h2>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Package Details */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center">
               <Package className="h-5 w-5 mr-2 text-blue-500" /> Package Details
@@ -105,6 +106,11 @@ export default function Booking() {
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
+            {errors.packageType && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.packageType}</AlertDescription>
+              </Alert>
+            )}
             <Input
               placeholder="Weight (kg)"
               type="number"
@@ -112,13 +118,21 @@ export default function Booking() {
               onChange={(e) => handleChange("weight", e.target.value)}
             />
             <Textarea
+              placeholder="Package Description"
+              value={formData.packageDescription}
+              onChange={(e) => handleChange("packageDescription", e.target.value)}
+            />
+            {errors.packageDescription && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.packageDescription}</AlertDescription>
+              </Alert>
+            )}
+            <Textarea
               placeholder="Special Instructions (e.g., Fragile)"
               value={formData.instructions}
               onChange={(e) => handleChange("instructions", e.target.value)}
             />
           </div>
-
-          {/* Locations */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Locations</h3>
             <Input
@@ -126,67 +140,55 @@ export default function Booking() {
               value={formData.pickupLocation}
               onChange={(e) => handleChange("pickupLocation", e.target.value)}
             />
+            {errors.pickupLocation && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.pickupLocation}</AlertDescription>
+              </Alert>
+            )}
             <Input
               placeholder="Delivery Location (e.g., Mzuzu Central Market)"
               value={formData.deliveryLocation}
               onChange={(e) => handleChange("deliveryLocation", e.target.value)}
             />
+            {errors.deliveryLocation && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.deliveryLocation}</AlertDescription>
+              </Alert>
+            )}
           </div>
-
-          {/* Pick-Up Option */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center">
               <Truck className="h-5 w-5 mr-2 text-blue-500" /> Pick-Up Option
             </h3>
-            <div className="flex space-x-4">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="pickupOption"
-                  value="agent"
-                  checked={formData.pickupOption === "agent"}
-                  onChange={() => handleChange("pickupOption", "agent")}
-                  className="mr-2"
-                />
-                Agent Pick-Up
-              </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="pickupOption"
-                  value="hub"
-                  checked={formData.pickupOption === "hub"}
-                  onChange={() => handleChange("pickupOption", "hub")}
-                  className="mr-2"
-                />
-                Drop at Hub
-              </label>
-            </div>
-            {formData.pickupOption === "agent" && (
-              <Select
-                onValueChange={(value) => handleChange("pickupTime", value)}
-                value={formData.pickupTime}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Pick-Up Time" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="8am-12pm">8 AM - 12 PM</SelectItem>
-                  <SelectItem value="12pm-4pm">12 PM - 4 PM</SelectItem>
-                  <SelectItem value="4pm-8pm">4 PM - 8 PM</SelectItem>
-                </SelectContent>
-              </Select>
+            <p>Agent Pick-Up</p>
+            <Select
+              onValueChange={(value) => handleChange("pickupTime", value)}
+              value={formData.pickupTime}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select Pick-Up Time" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="8am-12pm">8 AM - 12 PM</SelectItem>
+                <SelectItem value="12pm-4pm">12 PM - 4 PM</SelectItem>
+                <SelectItem value="4pm-8pm">4 PM - 8 PM</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.pickupTime && (
+              <Alert variant="destructive">
+                <AlertDescription>{errors.pickupTime}</AlertDescription>
+              </Alert>
             )}
           </div>
-
-          {/* Submit */}
           <div className="text-right">
             <Button
               type="submit"
               disabled={
                 !formData.packageType ||
                 !formData.pickupLocation ||
-                !formData.deliveryLocation
+                !formData.deliveryLocation ||
+                !formData.pickupTime ||
+                !formData.packageDescription
               }
               className="bg-blue-600 hover:bg-blue-700"
             >

@@ -1,3 +1,4 @@
+// /src/pages/customer/auth.tsx
 "use client";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SignupForm from "@/components/customer/SignupForm";

@@ -1,4 +1,7 @@
+// /src/components/customer/LoginForm.tsx
+"use client";
 import { useState } from "react";
+import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -6,19 +9,27 @@ import { TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 
 export default function LoginForm() {
-  const [loginData, setLoginData] = useState({ identifier: "", password: "" });
+  const [loginData, setLoginData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const { login } = useAuth();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!loginData.identifier || !loginData.password) {
+    if (!loginData.email || !loginData.password) {
       setError("Please fill in all fields");
       return;
     }
-    // For UI purposes, log the data and clear the form
-    console.log("Login data:", loginData);
-    setLoginData({ identifier: "", password: "" });
     setError("");
+    setIsLoading(true);
+    try {
+      await login(loginData.email, loginData.password);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setIsLoading(false);
+      setLoginData({ ...loginData, password: "" });
+    }
   };
 
   return (
@@ -26,8 +37,8 @@ export default function LoginForm() {
       <form onSubmit={handleLogin} className="space-y-4">
         <Input
           placeholder="Email or Phone Number"
-          value={loginData.identifier}
-          onChange={(e) => setLoginData({ ...loginData, identifier: e.target.value })}
+          value={loginData.email}
+          onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
         />
         <Input
           type="password"
@@ -45,8 +56,8 @@ export default function LoginForm() {
             Forgot Password?
           </Link>
         </div>
-        <Button type="submit" className="w-full">
-          Login
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? "Logging in..." : "Login"}
         </Button>
       </form>
     </TabsContent>
