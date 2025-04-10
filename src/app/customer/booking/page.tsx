@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { Package, Truck } from "lucide-react";
 import Link from "next/link";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function Booking() {
   const { isAuthenticated } = useAuth();
