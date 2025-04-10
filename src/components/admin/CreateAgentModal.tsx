@@ -14,8 +14,18 @@ import {
 import { toast } from "sonner";
 import { Plus } from "lucide-react";
 
+interface Agent {
+  user_id: number;
+  name: string;
+  email: string;
+  phone_number: string;
+  address: string;
+  created_at: string;
+  role: string;
+}
+
 interface CreateAgentModalProps {
-  onAgentCreated: (newAgent: any) => void;
+  onAgentCreated: (newAgent: Agent) => void;
 }
 
 export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
@@ -59,7 +69,7 @@ export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
         throw new Error(await response.text());
       }
 
-      const newAgent = await response.json();
+      const newAgent: Agent = await response.json();
       toast.success("Agent created successfully!");
       onAgentCreated(newAgent);
       setOpen(false);

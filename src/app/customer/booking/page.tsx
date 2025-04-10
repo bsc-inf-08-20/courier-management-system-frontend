@@ -14,7 +14,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { Package, Truck } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import Link from "next/link";
 
 export default function Booking() {

@@ -10,8 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import AgentList from "./AgentList";
-import AssignAgent from "./UnassignedRequests";
+// import AgentList from "./AgentList";
 
 interface PickupRequest {
   id: number;
@@ -28,7 +27,7 @@ interface Props {
 
 export default function PickupRequestList({ requests, setRequests }: Props) {
   const [expandedRequest, setExpandedRequest] = useState<number | null>(null);
-
+  console.log(setRequests)
   return (
     <Table>
       <TableHeader>
@@ -67,7 +66,7 @@ export default function PickupRequestList({ requests, setRequests }: Props) {
             {expandedRequest === request.id && (
               <TableRow>
                 <TableCell colSpan={4} className="bg-gray-50">
-                  <AgentList requestId={request.id} setRequests={setRequests} />
+                  {/* <AgentList requestId={request.id} setRequests={setRequests} /> */}
                 </TableCell>
               </TableRow>
             )}

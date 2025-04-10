@@ -8,11 +8,21 @@ import axios from "axios";
 // Define API endpoint
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/agents/register";
 
+// Define types for form values
+interface FormValues {
+  nationalId: File | null;
+  hasVehicle: string;
+  vehicleType: string;
+  vehicleNumber: string;
+  personalDescription: string;
+  driversLicense?: File;
+}
+
 // Validation Schema
 const validationSchema = Yup.object({
   nationalId: Yup.mixed()
     .test("fileRequired", "National ID photo is required", (value) => {
-      if (!value) return false; // Ensure a file is selected
+      if (!value) return false;
       return value instanceof File && ["image/jpeg", "image/png", "image/jpg"].includes(value.type);
     })
     .required("National ID photo is required"),
@@ -33,25 +43,29 @@ const validationSchema = Yup.object({
 const AgentFinalRegistration = () => {
   const router = useRouter();
 
-  // Handle Form Submission
-  const handleSubmit = async (values: any) => {
+  // Handle Form Submission with proper typing
+  const handleSubmit = async (values: FormValues) => {
     try {
       const formData = new FormData();
-      formData.append("nationalId", values.nationalId); // File upload
+      if (values.nationalId) {
+        formData.append("nationalId", values.nationalId);
+      }
       formData.append("hasVehicle", values.hasVehicle);
       if (values.hasVehicle === "yes") {
         formData.append("vehicleType", values.vehicleType);
         formData.append("vehicleNumber", values.vehicleNumber.toString());
       }
       formData.append("personalDescription", values.personalDescription);
+      if (values.driversLicense) {
+        formData.append("driversLicense", values.driversLicense);
+      }
 
-      // Send data to backend
       await axios.post(API_URL, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
       alert("Registration submitted successfully!");
-      router.push("/dashboard"); // Redirect after submission
+      router.push("/dashboard");
     } catch (error) {
       console.error("Error submitting registration:", error);
       alert("Failed to submit. Please try again.");
@@ -94,23 +108,22 @@ const AgentFinalRegistration = () => {
                 <ErrorMessage name="nationalId" component="div" className="text-red-500 text-sm" />
               </div>
                 
-
-                {/* National ID Upload */}
-                <div className="flex flex-col">
-                <label className="text-black font-medium">Upload Driver's License Photo</label>
+              {/* Driver's License Upload */}
+              <div className="flex flex-col">
+                <label className="text-black font-medium">Upload Driver&apos;s License Photo</label>
                 <input
-                type="file"
-                accept="image/jpeg, image/png, image/jpg"
-                onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                if (file) {
-                setFieldValue("driversLicense", file);
-             }
-           }}
-            className="border-2 border-black p-2 rounded-md bg-white text-black"
-          />
-          <ErrorMessage name="driversLicense" component="div" className="text-red-500 text-sm" />
-          </div>
+                  type="file"
+                  accept="image/jpeg, image/png, image/jpg"
+                  onChange={(event) => {
+                    const file = event.currentTarget.files?.[0];
+                    if (file) {
+                      setFieldValue("driversLicense", file);
+                    }
+                  }}
+                  className="border-2 border-black p-2 rounded-md bg-white text-black"
+                />
+                <ErrorMessage name="driversLicense" component="div" className="text-red-500 text-sm" />
+              </div>
 
               {/* Vehicle Ownership Question */}
               <div className="flex flex-col">
@@ -147,7 +160,9 @@ const AgentFinalRegistration = () => {
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
-                      onChange={(e: any) => setFieldValue("vehicleNumber", e.target.value.replace(/\D/g, ""))}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => 
+                        setFieldValue("vehicleNumber", e.target.value.replace(/\D/g, ""))
+                      }
                       className="border-2 border-black p-1 rounded-md text-black w-20"
                     />
                     <ErrorMessage name="vehicleNumber" component="div" className="text-red-500 text-sm" />
@@ -170,18 +185,16 @@ const AgentFinalRegistration = () => {
 
               {/* Submit Button */}
               <div className="flex justify-between mt-4">
-
-                 <button
-                   type="button"
-                   onClick={() => router.push("/agent_auth/registration")}
-                   className="flex items-center py-2 px-6 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
+                <button
+                  type="button"
+                  onClick={() => router.push("/agent_auth/registration")}
+                  className="flex items-center py-2 px-6 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
                 >
-                    ← Previous
+                  &larr; Previous
                 </button>
                 <button
-
-                type="submit"
-                disabled={!isValid || !dirty}
+                  type="submit"
+                  disabled={!isValid || !dirty}
                   className={`py-2 px-6 rounded-md w-full sm:w-auto ${
                     !isValid || !dirty
                       ? "bg-gray-400 cursor-not-allowed"

@@ -5,8 +5,6 @@ import { usePathname } from "next/navigation"; // Import usePathname
 import { useRouter } from "next/navigation"; 
 import {
   Truck,
-  Users,
-  Package,
   Menu,
   User,
   LogOut,
@@ -26,9 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { report } from "process";
-import { profile } from "console";
-import Dashboard from "./desiplaygraphs/page";
 
 export default function AgentLayout({
   children,
