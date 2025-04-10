@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link"; // Import Link for navigation
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import {toast} from "sonner";
 
 export default function AgentLoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +15,22 @@ export default function AgentLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // Redirect if already logged in
+    useEffect(() => {
+      const token = localStorage.getItem("token");
+      if (token) {
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          if (payload.exp * 1000 > Date.now() && payload.role === "AGENT") {
+            router.push("/agent");
+          }
+        } catch (error) {
+          localStorage.removeItem("token");
+          localStorage.removeItem("refresh_token");
+        }
+      }
+    }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,22 +54,33 @@ export default function AgentLoginPage() {
 
       // Store token
       localStorage.setItem("token", data.access_token);
-
-      // Decode token to check role
-      const payload = JSON.parse(atob(data.access_token.split(".")[1])); 
-      if (payload.role !== "AGENT") {
-        setError("Unauthorized access");
-        localStorage.removeItem("token");
-        return;
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token);
       }
 
-      // Redirect to agent dashboard
+      toast.success("Logged in successfully");
       router.push("/agent");
     } catch (err) {
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
   };
+
+  //     // Decode token to check role
+  //     const payload = JSON.parse(atob(data.access_token.split(".")[1])); 
+  //     if (payload.role !== "AGENT") {
+  //       setError("Unauthorized access");
+  //       localStorage.removeItem("token");
+  //       return;
+  //     }
+
+  //     // Redirect to agent dashboard
+  //     router.push("/agent");
+  //   } catch (err) {
+  //     setLoading(false);
+  //     setError("Something went wrong, please try again.");
+  //   }
+  // };
 
   return (
     <div className="flex justify-center w-full items-center h-screen bg-gray-100">

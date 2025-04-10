@@ -3,7 +3,6 @@
 import { useState,useEffect} from "react";
 import { usePathname } from "next/navigation"; // Import usePathname
 import { useRouter } from "next/navigation"; 
-import { useAuth } from "@/hooks/useAuth";
 import {
   Truck,
   Users,
@@ -31,6 +30,7 @@ import { toast } from "sonner";
 import { report } from "process";
 import { profile } from "console";
 import Dashboard from "./desiplaygraphs/page";
+import { agentAuth } from "@/hooks/agentAuth";
 
 export default function AgentLayout({
   children,
@@ -49,7 +49,7 @@ export default function AgentLayout({
   const router = useRouter(); // intialize the router
 
   // Use auth hook to handle token validation and automatic logout
-    useAuth("AGENT");
+    agentAuth("AGENT");
 
      // Detect screen size and set initial sidebar state
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function AgentLayout({
                 .split(" ")
                 .map((n: string) => n[0])
                 .join("")
-            : "AM",
+            : "agent",
         });
       } catch (error) {
         console.error("Error parsing token:", error);
@@ -146,14 +146,18 @@ export default function AgentLayout({
             : "w-16 opacity-100"
         }`}
       >
-        <div className="p-4 flex items-center justify-between">
+        <div className="p-4 flex items-center justify-between h-16">
+          {sidebarOpen && (
+            <h2 className="text-xl font-bold whitespace-nowrap">Agent Panel</h2>
+          )}
+        {/* <div className="p-4 flex items-center justify-between">
           <h2
             className={`text-xl font-bold transition-opacity ${
               sidebarOpen ? "opacity-100" : "opacity-0"
             }`}
           >
             Agent Panel
-          </h2>
+          </h2> */}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             className="p-2 rounded-md hover:bg-gray-100 transition-all absolute right-4"
@@ -188,14 +192,14 @@ export default function AgentLayout({
               <button className="w-full flex items-center gap-3 px-4 py-2 rounded-md hover:bg-gray-100">
                 <Avatar className="h-8 w-8">
                   <AvatarImage src=" " alt="User" />
-                  <AvatarFallback>AM</AvatarFallback>
+                  <AvatarFallback>Agent</AvatarFallback>
                 </Avatar>
                   
 
                 {sidebarOpen && (
                   <div className="flex flex-col text-left overflow-hidden">
                     <span className="text-sm font-medium truncate">
-                      {userData?.name || "Admin"}
+                      {userData?.name || "Agent"}
                     </span>
                     <span className="text-xs text-gray-500 truncate">
                       {userData?.email || "agent@example.com"}
@@ -206,9 +210,9 @@ export default function AgentLayout({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
-              align="end"
+              align="start"
               side="right"
-              className="w-48 bg-white shadow-lg rounded-md"
+              className="w-56 bg-white shadow-lg rounded-md"
             >
               <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
               onClick={() => router.push("/agent/profile")}
@@ -216,9 +220,9 @@ export default function AgentLayout({
                 <User className="h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
-              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100"
+              <DropdownMenuItem className="flex items-center gap-2 px-4 py-2 hover:bg-gray-100 cursor-pointer"
 
-              onClick={handleLogout}
+               onClick={handleLogout}
               // onClick={() => router.push("/agent_auth/login")}
               >
                 <LogOut className="h-4 w-4" />
@@ -233,7 +237,6 @@ export default function AgentLayout({
       <div
         className={`flex-1 flex flex-col transition-all duration-300 ease-in-out ${
           sidebarOpen && !isMobile ? "ml-64" : isMobile ? "ml-0" : "ml-16"
-          // sidebarOpen ? "ml-64" : "ml-16"
         }`}
       >
         {/* Header with toggle button for mobile */}
@@ -254,7 +257,9 @@ export default function AgentLayout({
         </header>
 
         {/* Main content */}
-        <main className="p-4 overflow-auto flex-1">{children}</main>
+        <main className="flex-1 overflow-y-auto p-4 md:p-6 bg-gray-50">
+          <div className="max-w-7xl mx-auto">{children}</div>
+        </main>
       </div>
     </div>
   );
