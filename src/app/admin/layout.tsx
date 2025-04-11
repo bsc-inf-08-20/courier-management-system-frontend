@@ -17,6 +17,7 @@ import {
   MapPin,
   PackageSearch,
   ClipboardList,
+  Rocket,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -114,7 +115,7 @@ export default function AdminLayout({
     },
     {
       href: "/admin/deliver",
-      icon: Download,
+      icon: Rocket,
       title: "Deliver",
     },
     {

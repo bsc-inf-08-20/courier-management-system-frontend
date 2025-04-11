@@ -24,7 +24,7 @@ export default function Home() {
           >
             Your Trusted Courier in Malawi
           </motion.h2>
-          ``
+          
           <p className="text-lg md:text-xl mb-8 opacity-90">
             Send packages with ease—book, track, and deliver seamlessly.
           </p>
