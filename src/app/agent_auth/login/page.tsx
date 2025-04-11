@@ -26,6 +26,7 @@ export default function AgentLoginPage() {
             router.push("/agent");
           }
         } catch (error) {
+          console.log(error)
           localStorage.removeItem("token");
           localStorage.removeItem("refresh_token");
         }
@@ -61,6 +62,7 @@ export default function AgentLoginPage() {
       toast.success("Logged in successfully");
       router.push("/agent_components");
     } catch (err) {
+      console.log(err)
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
@@ -118,7 +120,7 @@ export default function AgentLoginPage() {
 
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
-            Don't have an agent account?{" "}
+            Do not have an agent account?{" "}
             <Link href="/agent_auth/registration" className="text-blue-600 font-semibold hover:underline">
               Apply to be an Agent
             </Link>

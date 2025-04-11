@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-export function agentAuth(requiredRole = 'AGENT') {
+export function useAgentAuth(requiredRole = 'AGENT') {
   const router = useRouter();
   let isRefreshing = false; // Lock to prevent concurrent refreshes
 
@@ -50,10 +50,7 @@ export function agentAuth(requiredRole = 'AGENT') {
 
       try {
         const refreshToken = localStorage.getItem('refresh_token');
-        console.log('Sending refresh token:', refreshToken);
-        if (!refreshToken) {
-          return false;
-        }
+        if (!refreshToken) return false;
 
         const response = await fetch('http://localhost:3001/auth/refresh', {
           method: 'POST',
@@ -63,19 +60,17 @@ export function agentAuth(requiredRole = 'AGENT') {
 
         if (response.ok) {
           const data = await response.json();
-          console.log('Received new tokens:', data);
           localStorage.setItem('token', data.access_token);
           localStorage.setItem('refresh_token', data.refresh_token);
           return true;
         } else {
-          console.error('Refresh failed:', await response.json());
           return false;
         }
       } catch (error) {
         console.error('Token refresh failed:', error);
         return false;
       } finally {
-        isRefreshing = false; // Release the lock
+        isRefreshing = false;
       }
     };
 
