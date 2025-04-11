@@ -190,13 +190,13 @@ const DeliveryPage = () => {
           variant={filterType === "to_be_picked_up" ? "default" : "outline"}
           onClick={() => setFilterType("to_be_picked_up")}
         >
-          Packets to be Picked Up
+          Packets to be Delivered
         </Button>
         <Button
           variant={filterType === "to_be_delivered" ? "default" : "outline"}
           onClick={() => setFilterType("to_be_delivered")}
         >
-          Packets to be Delivered
+          Packets to be Picked Up
         </Button>
       </div>
 

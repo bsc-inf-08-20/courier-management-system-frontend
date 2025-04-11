@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Info } from "lucide-react";
-import { Label } from "@radix-ui/react-label";
+import { Label } from "@/components/ui/label";
 
 interface MapComponentProps {
   initialCenter: { lat: number; lng: number };
@@ -18,7 +18,7 @@ export function MapComponent({
 }: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [, setMarker] = useState<google.maps.Marker | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
@@ -49,7 +49,6 @@ export function MapComponent({
 
         onLocationSelect({ lat, lng });
 
-        // Update or create marker
         if (markerInstance) {
           markerInstance.setPosition(e.latLng);
         } else {
@@ -83,7 +82,14 @@ export function MapComponent({
         google.maps.event.clearInstanceListeners(mapInstance);
       }
     };
-  }, [initialCenter]);
+  }, [initialCenter]); // Add initialCenter as dependency
+
+  // Update map center when initialCenter changes
+  useEffect(() => {
+    if (map && initialCenter) {
+      map.setCenter(initialCenter);
+    }
+  }, [map, initialCenter]);
 
   return (
     <div className="mb-4">

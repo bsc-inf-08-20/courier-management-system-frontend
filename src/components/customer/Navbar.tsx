@@ -17,7 +17,11 @@ export default function Navbar() {
     <nav className="w-full bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         <Link href="/" className="text-2xl font-bold text-gray-800">
+<<<<<<< HEAD
           Courier Management Information System
+=======
+          CMIS
+>>>>>>> 466825198ddbcde1e9ed1b70fcd3f09ee5663447
         </Link>
         <div className="space-x-4">
           <Link href="/">

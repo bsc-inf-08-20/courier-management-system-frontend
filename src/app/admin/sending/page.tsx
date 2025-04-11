@@ -13,13 +13,6 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Info } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { QRCodeSVG } from "qrcode.react";
@@ -66,8 +59,8 @@ export default function CreatePacketPage() {
   const [adminCity, setAdminCity] = useState("");
   const [qrCodeOpen, setQrCodeOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
-  const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [, setMap] = useState<google.maps.Map | null>(null);
+  const [, setMarker] = useState<google.maps.Marker | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const qrCodeRef = useRef<HTMLDivElement>(null);
 
@@ -220,14 +213,14 @@ export default function CreatePacketPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
       const packetData = {
         ...formData,
         weight: parseFloat(formData.weight),
         status: "at_origin_hub",
       };
-
+  
       const res = await fetch("http://localhost:3001/packets", {
         method: "POST",
         headers: {
@@ -236,32 +229,33 @@ export default function CreatePacketPage() {
         },
         body: JSON.stringify(packetData),
       });
-
+  
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to create packet");
       }
-
+  
       const responseData = await res.json();
       toast.success("Packet created successfully");
-
+  
+      // ONLY THIS SECTION CHANGED (QR code format) ▼
       setQrCodeData(
-        JSON.stringify({
-          packetId: responseData.id,
-          description: formData.description,
-          weight: formData.weight,
-          category: formData.category,
-          sender: formData.sender,
-          receiver: formData.receiver,
-          origin: formData.origin_address,
-          destination: formData.destination_address,
-          createdAt: new Date().toISOString(),
-          status: "at_origin_hub",
-        })
+        `PACKET ID: ${responseData.id}\n` +
+        `DESCRIPTION: ${formData.description}\n` +
+        `WEIGHT: ${formData.weight} kg\n` +
+        `CATEGORY: ${formData.category}\n\n` +
+        `SENDER: ${formData.sender.name}\n` +
+        `PHONE: ${formData.sender.phone_number}\n\n` +
+        `RECEIVER: ${formData.receiver.name}\n` +
+        `PHONE: ${formData.receiver.phone_number}\n\n` +
+        `ORIGIN: ${formData.origin_address}\n` +
+        `DESTINATION: ${formData.destination_address}\n`
       );
+      // ONLY THIS SECTION CHANGED (QR code format) ▲
+  
       setQrCodeOpen(true);
-
-      // Reset form data
+  
+      // Reset form (unchanged)
       setFormData({
         description: "",
         weight: "",
@@ -269,31 +263,18 @@ export default function CreatePacketPage() {
         instructions: "",
         origin_address: adminCity,
         origin_coordinates: getCityCoordinates(adminCity),
-        destination_address:
-          formData.delivery_type === "pickup" ? `${adminCity} Hub` : "",
-        destination_coordinates:
-          formData.delivery_type === "pickup"
-            ? getCityCoordinates(adminCity)
-            : { lat: 0, lng: 0 },
+        destination_address: formData.delivery_type === "pickup" ? `${adminCity} Hub` : "",
+        destination_coordinates: formData.delivery_type === "pickup" 
+          ? getCityCoordinates(adminCity) 
+          : { lat: 0, lng: 0 },
         delivery_type: "pickup",
         destination_hub: adminCity,
-        sender: {
-          name: "",
-          email: "",
-          phone_number: "",
-        },
-        receiver: {
-          name: "",
-          email: "",
-          phone_number: "",
-        },
+        sender: { name: "", email: "", phone_number: "" },
+        receiver: { name: "", email: "", phone_number: "" },
       });
+      
     } catch (error: unknown) {
-      let errorMessage = "Something went wrong";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : "Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -701,7 +682,7 @@ export default function CreatePacketPage() {
                     />
                   </div>
                   <MapComponent
-                    initialCenter={getCityCoordinates(adminCity)}
+                    initialCenter={getCityCoordinates(formData.destination_address)}
                     onLocationSelect={(coords) =>
                       setFormData((prev) => ({
                         ...prev,

@@ -31,8 +31,8 @@ interface Packet {
   category: string;
   origin_address: string;
   destination_address: string;
-  collected_at?: string;
-  origin_hub_confirmed_at?: string;
+  collected_at?: string | null;
+  origin_hub_confirmed_at?: string | null;
   dispatched_at?: string;
   destination_hub_confirmed_at?: string | null;
   out_for_delivery_at?: string | null;
@@ -44,12 +44,20 @@ interface Packet {
     user_id: number;
     name: string;
     phone_number: string;
+    email: string;
   } | null;
   assigned_vehicle?: {
     id: number;
     make: string;
     model: string;
     license_plate: string;
+    // Add assigned_driver here if API is updated
+    assigned_driver?: {
+      user_id: number;
+      name: string;
+      phone_number: string;
+      email: string;
+    } | null;
   } | null;
 }
 
@@ -77,7 +85,6 @@ const ReceivePacketsPage = () => {
       }
 
       try {
-        // Get admin's city first
         const adminRes = await fetch("http://localhost:3001/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -88,7 +95,6 @@ const ReceivePacketsPage = () => {
         const adminData = await adminRes.json();
         setAdminCity(adminData.city || "");
 
-        // Fetch incoming packets
         const packetsRes = await fetch(
           `http://localhost:3001/packets/in-transit/incoming?origin=${adminData.city}`,
           { headers: { Authorization: `Bearer ${token}` } }
@@ -106,7 +112,6 @@ const ReceivePacketsPage = () => {
           ? packetsData.data
           : [];
 
-        // Filter packets that are confirmed by origin and destined for admin's city
         const incomingPackets = packetsArray.filter(
           (packet: Packet) =>
             packet.status === "in_transit" &&
@@ -155,8 +160,6 @@ const ReceivePacketsPage = () => {
       }
 
       toast.success("Packet received successfully");
-
-      // Update local state
       setPackets(packets.filter((p) => p.id !== selectedPacket));
       setSelectedPacket(null);
     } catch (error) {
@@ -226,11 +229,28 @@ const ReceivePacketsPage = () => {
                   <TableCell>{packet.origin_address || "N/A"}</TableCell>
                   <TableCell>{formatDate(packet.dispatched_at)}</TableCell>
                   <TableCell>
-                    {packet.assigned_driver?.name || "N/A"}
-                    {packet.assigned_driver?.phone_number && (
-                      <p className="text-sm text-gray-600">
-                        {packet.assigned_driver.phone_number}
-                      </p>
+                    {packet.assigned_vehicle?.assigned_driver ? (
+                      <div>
+                        <p>{packet.assigned_vehicle.assigned_driver.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {packet.assigned_vehicle.assigned_driver.phone_number}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {packet.assigned_vehicle.assigned_driver.email}
+                        </p>
+                      </div>
+                    ) : packet.assigned_driver ? (
+                      <div>
+                        <p>{packet.assigned_driver.name}</p>
+                        <p className="text-sm text-gray-600">
+                          {packet.assigned_driver.phone_number}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {packet.assigned_driver.email}
+                        </p>
+                      </div>
+                    ) : (
+                      "N/A"
                     )}
                   </TableCell>
                   <TableCell>
@@ -266,7 +286,7 @@ const ReceivePacketsPage = () => {
             <AlertDialogTitle>Confirm Package Receipt</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to confirm receipt of this package? This
-              will update its status to &quot;At Destination Hub&quot;.
+              will update its status to AT DESTINATION HUB
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
