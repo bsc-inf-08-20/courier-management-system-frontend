@@ -55,7 +55,7 @@ export function useAuth(requiredRole = 'ADMIN') {
           return false;
         }
 
-        const response = await fetch('http://localhost:3001/auth/refresh', {
+        const response = await fetch('https://cmis.ashrafchitambaa.com/auth/refresh', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ refresh_token: refreshToken }),

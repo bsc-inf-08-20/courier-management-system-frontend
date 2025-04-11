@@ -85,7 +85,7 @@ const ReceivePacketsPage = () => {
       }
 
       try {
-        const adminRes = await fetch("http://localhost:3001/users/me", {
+        const adminRes = await fetch("https://cmis.ashrafchitambaa.com/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!adminRes.ok) {
@@ -96,7 +96,7 @@ const ReceivePacketsPage = () => {
         setAdminCity(adminData.city || "");
 
         const packetsRes = await fetch(
-          `http://localhost:3001/packets/in-transit/incoming?origin=${adminData.city}`,
+          `https://cmis.ashrafchitambaa.com/packets/in-transit/incoming?origin=${adminData.city}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -144,7 +144,7 @@ const ReceivePacketsPage = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3001/packets/${selectedPacket}/destination-hub-confirm`,
+        `https://cmis.ashrafchitambaa.com/packets/${selectedPacket}/destination-hub-confirm`,
         {
           method: "PATCH",
           headers: {
