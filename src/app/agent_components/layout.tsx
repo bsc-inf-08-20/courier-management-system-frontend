@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import {
   Truck,
   Users,
-  Package,
   Menu,
   User,
   LogOut,
@@ -27,10 +26,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { report } from "process";
-import { profile } from "console";
-import Dashboard from "./desiplaygraphs/page";
-import { agentAuth } from "@/hooks/agentAuth";
+import { useAgentAuth } from "@/hooks/agentAuth";
 
 export default function AgentLayout({
   children,
@@ -49,7 +45,7 @@ export default function AgentLayout({
   const router = useRouter(); // intialize the router
 
   // Use auth hook to handle token validation and automatic logout
-    agentAuth("AGENT");
+    useAgentAuth("AGENT");
 
      // Detect screen size and set initial sidebar state
   useEffect(() => {
