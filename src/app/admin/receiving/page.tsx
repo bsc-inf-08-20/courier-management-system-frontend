@@ -286,7 +286,7 @@ const ReceivePacketsPage = () => {
             <AlertDialogTitle>Confirm Package Receipt</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to confirm receipt of this package? This
-              will update its status to "At Destination Hub".
+              will update its status to AT DESTINATION HUB
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -18,7 +18,7 @@ export function MapComponent({
 }: MapComponentProps) {
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const [, setMarker] = useState<google.maps.Marker | null>(null);
 
   useEffect(() => {
     if (!mapRef.current) return;
