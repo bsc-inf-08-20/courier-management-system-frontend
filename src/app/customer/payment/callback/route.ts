@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     
     // Example: Check payment status
     const paymentStatus = body.data?.status;
-    const txRef = body.data?.tx_ref;
+    // const txRef = body.data?.tx_ref;
     
     if (paymentStatus === 'successful') {
       // Update order status in your database
