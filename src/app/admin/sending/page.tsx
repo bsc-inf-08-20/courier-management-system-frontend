@@ -71,7 +71,7 @@ export default function CreatePacketPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("https://cmis.ashrafchitambaa.com/users/me", {
+        const res = await fetch("http://localhost:3001/users/me", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -213,15 +213,15 @@ export default function CreatePacketPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-  
+
     try {
       const packetData = {
         ...formData,
         weight: parseFloat(formData.weight),
         status: "at_origin_hub",
       };
-  
-      const res = await fetch("https://cmis.ashrafchitambaa.com/packets", {
+
+      const res = await fetch("http://localhost:3001/packets", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -229,32 +229,32 @@ export default function CreatePacketPage() {
         },
         body: JSON.stringify(packetData),
       });
-  
+
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to create packet");
       }
-  
+
       const responseData = await res.json();
       toast.success("Packet created successfully");
-  
+
       // ONLY THIS SECTION CHANGED (QR code format) ▼
       setQrCodeData(
         `PACKET ID: ${responseData.id}\n` +
-        `DESCRIPTION: ${formData.description}\n` +
-        `WEIGHT: ${formData.weight} kg\n` +
-        `CATEGORY: ${formData.category}\n\n` +
-        `SENDER: ${formData.sender.name}\n` +
-        `PHONE: ${formData.sender.phone_number}\n\n` +
-        `RECEIVER: ${formData.receiver.name}\n` +
-        `PHONE: ${formData.receiver.phone_number}\n\n` +
-        `ORIGIN: ${formData.origin_address}\n` +
-        `DESTINATION: ${formData.destination_address}\n`
+          `DESCRIPTION: ${formData.description}\n` +
+          `WEIGHT: ${formData.weight} kg\n` +
+          `CATEGORY: ${formData.category}\n\n` +
+          `SENDER: ${formData.sender.name}\n` +
+          `PHONE: ${formData.sender.phone_number}\n\n` +
+          `RECEIVER: ${formData.receiver.name}\n` +
+          `PHONE: ${formData.receiver.phone_number}\n\n` +
+          `ORIGIN: ${formData.origin_address}\n` +
+          `DESTINATION: ${formData.destination_address}\n`
       );
       // ONLY THIS SECTION CHANGED (QR code format) ▲
-  
+
       setQrCodeOpen(true);
-  
+
       // Reset form (unchanged)
       setFormData({
         description: "",
@@ -263,18 +263,21 @@ export default function CreatePacketPage() {
         instructions: "",
         origin_address: adminCity,
         origin_coordinates: getCityCoordinates(adminCity),
-        destination_address: formData.delivery_type === "pickup" ? `${adminCity} Hub` : "",
-        destination_coordinates: formData.delivery_type === "pickup" 
-          ? getCityCoordinates(adminCity) 
-          : { lat: 0, lng: 0 },
+        destination_address:
+          formData.delivery_type === "pickup" ? `${adminCity} Hub` : "",
+        destination_coordinates:
+          formData.delivery_type === "pickup"
+            ? getCityCoordinates(adminCity)
+            : { lat: 0, lng: 0 },
         delivery_type: "pickup",
         destination_hub: adminCity,
         sender: { name: "", email: "", phone_number: "" },
         receiver: { name: "", email: "", phone_number: "" },
       });
-      
     } catch (error: unknown) {
-      toast.error(error instanceof Error ? error.message : "Something went wrong");
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
@@ -682,7 +685,9 @@ export default function CreatePacketPage() {
                     />
                   </div>
                   <MapComponent
-                    initialCenter={getCityCoordinates(formData.destination_address)}
+                    initialCenter={getCityCoordinates(
+                      formData.destination_address
+                    )}
                     onLocationSelect={(coords) =>
                       setFormData((prev) => ({
                         ...prev,

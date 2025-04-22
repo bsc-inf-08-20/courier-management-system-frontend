@@ -29,7 +29,7 @@ export default function PacketsPage() {
   const fetchPackets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("https://cmis.ashrafchitambaa.com/packets/admin", {
+      const response = await fetch("http://localhost:3001/packets/admin", {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -1,20 +1,20 @@
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 
-export function useAgentAuth(requiredRole = 'AGENT') {
+export function useAgentAuth(requiredRole = "AGENT") {
   const router = useRouter();
   let isRefreshing = false; // Lock to prevent concurrent refreshes
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        router.push('/agent_auth/login');
+        router.push("/agent_auth/login");
         return false;
       }
 
       try {
-        const payload = JSON.parse(atob(token.split('.')[1]));
+        const payload = JSON.parse(atob(token.split(".")[1]));
         const isExpired = payload.exp * 1000 < Date.now();
         const hasValidRole = payload.role === requiredRole;
 
@@ -22,9 +22,9 @@ export function useAgentAuth(requiredRole = 'AGENT') {
           if (!isRefreshing) {
             const refreshed = await attemptRefresh();
             if (!refreshed) {
-              localStorage.removeItem('token');
-              localStorage.removeItem('refresh_token');
-              router.push('/agent_auth/login');
+              localStorage.removeItem("token");
+              localStorage.removeItem("refresh_token");
+              router.push("/agent_auth/login");
               return false;
             }
           }
@@ -36,10 +36,10 @@ export function useAgentAuth(requiredRole = 'AGENT') {
 
         return true;
       } catch (error) {
-        console.error('Error checking auth:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('refresh_token');
-        router.push('/agent_auth/login');
+        console.error("Error checking auth:", error);
+        localStorage.removeItem("token");
+        localStorage.removeItem("refresh_token");
+        router.push("/agent_auth/login");
         return false;
       }
     };
@@ -49,25 +49,25 @@ export function useAgentAuth(requiredRole = 'AGENT') {
       isRefreshing = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = localStorage.getItem("refresh_token");
         if (!refreshToken) return false;
 
-        const response = await fetch('https://cmis.ashrafchitambaa.com/auth/refresh', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const response = await fetch("http://localhost:3001/auth/refresh", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: refreshToken }),
         });
 
         if (response.ok) {
           const data = await response.json();
-          localStorage.setItem('token', data.access_token);
-          localStorage.setItem('refresh_token', data.refresh_token);
+          localStorage.setItem("token", data.access_token);
+          localStorage.setItem("refresh_token", data.refresh_token);
           return true;
         } else {
           return false;
         }
       } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error("Token refresh failed:", error);
         return false;
       } finally {
         isRefreshing = false;

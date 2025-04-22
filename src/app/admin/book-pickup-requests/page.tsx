@@ -230,14 +230,14 @@ const BookPickupRequestsPage = () => {
 
     const fetchData = async () => {
       try {
-        const adminRes = await fetch("https://cmis.ashrafchitambaa.com/users/me", {
+        const adminRes = await fetch("http://localhost:3001/users/me", {
           headers: { Authorization: `Bearer ${token}` },
         });
         const adminData = await adminRes.json();
         setAdminCity(adminData.city);
 
         const agentsRes = await fetch(
-          `https://cmis.ashrafchitambaa.com/users/agents?city=${adminData.city}`,
+          `http://localhost:3001/users/agents?city=${adminData.city}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -255,7 +255,7 @@ const BookPickupRequestsPage = () => {
         }
 
         const requestsRes = await fetch(
-          `https://cmis.ashrafchitambaa.com/pickup/requests?city=${adminData.city}`,
+          `http://localhost:3001/pickup/requests?city=${adminData.city}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -318,7 +318,7 @@ const BookPickupRequestsPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/pickup/${requestId}/assign`,
+        `http://localhost:3001/pickup/${requestId}/assign`,
         {
           method: "PATCH",
           headers: {
@@ -360,7 +360,7 @@ const BookPickupRequestsPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/pickup/${agentToRemove}/unassign`,
+        `http://localhost:3001/pickup/${agentToRemove}/unassign`,
         {
           method: "PATCH",
           headers: {
@@ -406,7 +406,7 @@ const BookPickupRequestsPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/pickup/${confirmHubArrivalId}/deliver`,
+        `http://localhost:3001/pickup/${confirmHubArrivalId}/deliver`,
         {
           method: "PATCH",
           headers: {

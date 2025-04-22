@@ -76,14 +76,18 @@ function getErrorMessage(error: unknown): string {
 const AgentPickupPage = () => {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(null);
+  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(
+    null
+  );
   const [weightDialogOpen, setWeightDialogOpen] = useState<number | null>(null);
   const [newWeight, setNewWeight] = useState<number | null>(null);
   const [editingWeightId, setEditingWeightId] = useState<number | null>(null);
   const [editingWeightValue, setEditingWeightValue] = useState<number>(0);
   const [agentCity, setAgentCity] = useState<string>("");
   const [agentId, setAgentId] = useState<number | null>(null);
-  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(null);
+  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -97,7 +101,7 @@ const AgentPickupPage = () => {
       setLoading(true);
       try {
         // Fetch agent info
-        const agentRes = await fetch("https://cmis.ashrafchitambaa.com/users/me-data", {
+        const agentRes = await fetch("http://localhost:3001/users/me-data", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -112,7 +116,7 @@ const AgentPickupPage = () => {
 
         // Fetch requests with valid agentId
         const requestsRes = await fetch(
-          `https://cmis.ashrafchitambaa.com/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
+          `http://localhost:3001/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -155,7 +159,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/packets/${packetId}/weight`,
+        `http://localhost:3001/packets/${packetId}/weight`,
         {
           method: "PATCH",
           headers: {
@@ -212,7 +216,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/packets/${pickupId}/agent-confirm`,
+        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {
@@ -273,7 +277,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `https://cmis.ashrafchitambaa.com/packets/${pickupId}/agent-confirm`,
+        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {
@@ -394,11 +398,7 @@ const AgentPickupPage = () => {
                     </Button>
                   )}
                   {request.packet.status === "collected" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                    >
+                    <Button size="sm" variant="outline" disabled>
                       Collected
                     </Button>
                   ) : (
@@ -433,7 +433,9 @@ const AgentPickupPage = () => {
               type="number"
               placeholder="Enter weight in kg"
               value={editingWeightValue}
-              onChange={(e) => setEditingWeightValue(parseFloat(e.target.value))}
+              onChange={(e) =>
+                setEditingWeightValue(parseFloat(e.target.value))
+              }
               min="0.1"
               step="0.1"
             />

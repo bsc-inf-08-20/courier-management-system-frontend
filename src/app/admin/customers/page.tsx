@@ -42,7 +42,7 @@ export default function CustomersPage() {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch("https://cmis.ashrafchitambaa.com/users", {
+        const response = await fetch("http://localhost:3001/users", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -69,7 +69,7 @@ export default function CustomersPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`https://cmis.ashrafchitambaa.com/users/${id}`, {
+      const res = await fetch(`http://localhost:3001/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -126,8 +126,8 @@ export default function CustomersPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirm Deletion</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Are you sure you want to delete {user.name}&rsquo;s account?
-                          This action cannot be undone.
+                          Are you sure you want to delete {user.name}&rsquo;s
+                          account? This action cannot be undone.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
