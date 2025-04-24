@@ -19,7 +19,7 @@ export default function MonthlyReportPage() {
   const [pickups, setPickups] = useState<Pickup[]>([]);
 
   // useEffect(() => {
-  //   // Mock data for testing
+  // Mock data for testing
   //   const mockData = [
   //     {
   //       id: "1",

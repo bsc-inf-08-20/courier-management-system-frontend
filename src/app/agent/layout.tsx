@@ -17,6 +17,7 @@ import {
   NewspaperIcon,
   SettingsIcon,
   UserIcon,
+  TrainTrackIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -31,6 +32,8 @@ import { report } from "process";
 import { profile } from "console";
 import Dashboard from "./desiplaygraphs/page";
 import { agentAuth } from "@/hooks/agentAuth";
+import Tracking from "../admin/tracking/page";
+import TrackCustomerLocationPage from "./tracking_customer_location/page";
 
 export default function AgentLayout({
   children,
@@ -95,6 +98,11 @@ export default function AgentLayout({
       icon: Truck,
       title: "Comfirm pickup",
     },
+    
+    { href: "/agent/tracking_customer_location", 
+      icon: TrainTrackIcon, 
+      title: "Tracking Location" },
+
     { href: "/agent/monthly_report", 
       icon: NewspaperIcon, 
       title: "monthly report", 
@@ -119,8 +127,7 @@ export default function AgentLayout({
      { href: "/agent/settings", 
       icon: SettingsIcon, 
       title: "settings" },
-      
-    // { href: "/agent/agents", icon: Users, title: "Agents" },
+    
     // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
 
