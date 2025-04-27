@@ -4,18 +4,19 @@ import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import AgentMap from '@/components/agent_map/agentMap';
+import AgentMap from '@/components/agent_map/agentMap'; // We'll improve AgentMap too!
 
 export default function TrackPage() {
   const [trackingId, setTrackingId] = useState('');
   const [parcel, setParcel] = useState<any>(null);
+  const [agentLocation, setAgentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [error, setError] = useState('');
 
   const fetchParcel = async () => {
     if (!trackingId) return;
 
     try {
-      const token = localStorage.getItem('token'); // Get token from storage
+      const token = localStorage.getItem('token');
       const res = await fetch(`http://localhost:3001/packets/track/${trackingId}/status`, {
         headers: {
           'Content-Type': 'application/json',
@@ -27,6 +28,21 @@ export default function TrackPage() {
       const data = await res.json();
       setParcel(data);
       setError('');
+
+      // Get Agent's current location
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setAgentLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+        },
+        (error) => {
+          console.error('Error getting agent location:', error);
+          setError('Failed to get agent location');
+        }
+      );
+
     } catch (err: any) {
       setError(err.message || 'Failed to fetch parcel');
       setParcel(null);
@@ -47,12 +63,16 @@ export default function TrackPage() {
         </CardContent>
       </Card>
 
-      {parcel && (
+      {parcel && agentLocation && (
         <div>
           <p className="mb-2 text-lg font-medium">
             Customer: {parcel.customerName}
           </p>
-          <AgentMap destination={{ lat: parcel.lat, lng: parcel.lng }} />
+          {/* Now pass BOTH agent and customer location */}
+          <AgentMap
+          //origin={{ lat: agentLocation.lat, lng: agentLocation.lng }} 
+          destination={{ lat: parcel.lat, lng: parcel.lng }}
+          />
         </div>
       )}
     </div>

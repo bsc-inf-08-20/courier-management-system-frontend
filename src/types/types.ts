@@ -8,6 +8,8 @@ export interface Customer {
   }
   
   export interface Packet {
+    customerName: ReactNode;
+    destination: ReactNode;
     id: number;
     description: string;
     status: string;

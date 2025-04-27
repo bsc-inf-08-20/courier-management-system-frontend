@@ -127,7 +127,11 @@ export default function AgentLayout({
      { href: "/agent/settings", 
       icon: SettingsIcon, 
       title: "settings" },
-    
+      
+    { href: "/agent/deliver_packet",
+       icon: Users, 
+       title: "Deliver Packet" },
+    // { href: "/agent/agents", icon: Users, title: "Agents" },
     // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
 
