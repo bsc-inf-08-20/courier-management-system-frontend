@@ -18,6 +18,7 @@ import {
   SettingsIcon,
   UserIcon,
   TrainTrackIcon,
+  TruckIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -34,6 +35,7 @@ import Dashboard from "./desiplaygraphs/page";
 import { agentAuth } from "@/hooks/agentAuth";
 import Tracking from "../admin/tracking/page";
 import TrackCustomerLocationPage from "./tracking_customer_location/page";
+import { map } from "leaflet";
 
 export default function AgentLayout({
   children,
@@ -91,7 +93,10 @@ export default function AgentLayout({
   
   // Define navigation items
   const navItems = [
-    { href: "/agent", icon: Box, title: "Agent Dashboard" },
+    { href: "/agent", 
+      icon: Box, 
+      title: "Agent Dashboard" },
+      
     
     {
       href: "/agent/confirm_pickups",
@@ -102,6 +107,10 @@ export default function AgentLayout({
     { href: "/agent/tracking_customer_location", 
       icon: TrainTrackIcon, 
       title: "Tracking Location" },
+
+    { href: "/agent/deliver_packet",
+        icon: TruckIcon, 
+        title: "Deliver Packet" },
 
     { href: "/agent/monthly_report", 
       icon: NewspaperIcon, 
@@ -128,10 +137,7 @@ export default function AgentLayout({
       icon: SettingsIcon, 
       title: "settings" },
       
-    { href: "/agent/deliver_packet",
-       icon: Users, 
-       title: "Deliver Packet" },
-    // { href: "/agent/agents", icon: Users, title: "Agents" },
+     //{ href: "/agent/Agent", icon:User, title: "Agent" },
     // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
 

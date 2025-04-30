@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 interface Packet {
   id: number;
   customerName: string;
+  trackingId: string; 
   destination: string;
   status: "Pending Delivery" | "Done";
   collected: boolean;
@@ -149,7 +150,7 @@ export default function AgentDeliveryPage() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center py-6 text-gray-500 text-sm md:text-base">
-                      No packets to deliver
+                      Currently you dont have any packets assigned to you to deliver to the customer
                     </td>
                   </tr>
                 )}
@@ -166,6 +167,7 @@ export default function AgentDeliveryPage() {
                 <tr>
                   <th className="p-3 text-left text-sm md:text-base">Customer</th>
                   <th className="p-3 text-left text-sm md:text-base">Destination</th>
+                  <th className="p-3 text-left text-sm md:text-base">Tracking ID</th> 
                   <th className="p-3 text-left text-sm md:text-base">Status</th>
                   <th className="p-3 text-left text-sm md:text-base">Confirm Received</th>
                 </tr>
@@ -176,6 +178,7 @@ export default function AgentDeliveryPage() {
                     <tr key={packet.id} className="border-t">
                       <td className="p-3 text-sm md:text-base">{packet.customerName}</td>
                       <td className="p-3 text-sm md:text-base">{packet.destination}</td>
+                      <td className="p-3 text-sm md:text-base text-blue-600">{packet.trackingId}</td> 
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs md:text-sm ${
                           packet.status === "Pending Delivery" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
@@ -201,7 +204,7 @@ export default function AgentDeliveryPage() {
                 ) : (
                   <tr>
                     <td colSpan={4} className="text-center py-6 text-gray-500 text-sm md:text-base">
-                      No collected packets
+                         No packets you have selected yet to deliver to the customers
                     </td>
                   </tr>
                 )}
