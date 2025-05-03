@@ -5,11 +5,10 @@ export async function POST(request: NextRequest) {
   try {
     const { firstName, lastName, email, amount } = await request.json();
 
-    // Determine the base URL (use production URL if available)
-    const isProduction = process.env.NODE_ENV === "production";
-    const baseUrl = isProduction
-      ? "https://cmis-one.vercel.app"  // Replace with your actual domain
-      : request.headers.get("origin") || "http://localhost:3000";
+    const baseUrl =
+      process.env.NODE_ENV === "production"
+        ? "https://cmis-one.vercel.app"
+        : "http://localhost:3000";
 
     const url = "https://api.paychangu.com/payment";
     const options = {
@@ -25,8 +24,8 @@ export async function POST(request: NextRequest) {
         first_name: firstName,
         last_name: lastName,
         email: email,
-        callback_url: `${baseUrl}/api/verify-payment`,  // Uses production URL in prod
-        return_url: `${baseUrl}/customer/payment/return`,  // Uses production URL in prod
+        callback_url: `${baseUrl}/customer/payment/return`,
+        return_url: `${baseUrl}/customer/payment/return`, // Make sure this matches your route
       }),
     };
 
