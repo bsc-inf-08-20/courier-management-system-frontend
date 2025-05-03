@@ -4,11 +4,29 @@
 import { useState, FormEvent, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
+interface PaymentStatus {
+  tx_ref: string;
+  currency: string;
+  amount: number;
+  status: string;
+  created_at: string;
+  // Add other fields you expect from the payment response
+  customer?: {
+    email: string;
+    first_name: string;
+    last_name: string;
+  };
+  authorization?: {
+    channel: string;
+    completed_at: string;
+  };
+}
+
 export default function PaymentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<any>(null);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
   
   const searchParams = useSearchParams();
   const txRef = searchParams.get('tx_ref');
