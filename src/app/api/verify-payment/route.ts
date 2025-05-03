@@ -1,52 +1,47 @@
 // src/app/api/verify-payment/route.ts
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const txRef = searchParams.get('tx_ref');
 
     if (!txRef) {
       return NextResponse.json(
-        { success: false, message: 'Transaction reference is required' },
+        { success: false, message: 'Transaction reference missing' },
         { status: 400 }
       );
     }
 
-    const apiKey =
-      process.env.PAYCHANGU_API_KEY ||
-      'sec-test-UOIha9XzUVphARJLtGlMYRaHYLeoq3bK';
-
-    const url = `https://api.paychangu.com/verify-payment/${txRef}`;
-    const options = {
+    const response = await fetch(`https://api.paychangu.com/verify-payment/${txRef}`, {
       method: 'GET',
       headers: {
-        accept: 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-    };
+        'accept': 'application/json',
+        'Authorization': `Bearer ${process.env.PAYCHANGU_SECRET_KEY}`
+      }
+    });
 
-    const response = await fetch(url, options);
-    const result = await response.json();
+    const data = await response.json();
 
-    if (result.status === 'success') {
-      return NextResponse.json({
-        success: true,
-        payment: result.data,
-      });
-    } else {
-      return NextResponse.json({
-        success: false,
-        message: result.message || 'Payment verification failed',
-      });
+    if (data.status !== 'success') {
+      return NextResponse.json(
+        { success: false, message: data.message || 'Payment verification failed' },
+        { status: 400 }
+      );
     }
+
+    // Here you can save the payment details to your database
+    // For example: await savePaymentToDatabase(data.data);
+
+    return NextResponse.json({
+      success: true,
+      paymentData: data.data
+    });
+
   } catch (error) {
-    console.error('Error verifying payment:', error);
+    console.error('Payment verification error:', error);
     return NextResponse.json(
-      {
-        success: false,
-        message: 'An error occurred while verifying the payment',
-      },
+      { success: false, message: 'Internal server error' },
       { status: 500 }
     );
   }

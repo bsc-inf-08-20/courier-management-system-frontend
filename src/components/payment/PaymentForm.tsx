@@ -1,17 +1,52 @@
+// src/components/PaymentForm.tsx
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, FormEvent, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 
 export default function PaymentForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<any>(null);
   
+  const searchParams = useSearchParams();
+  const txRef = searchParams.get('tx_ref');
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     email: '',
     amount: '',
   });
+
+  useEffect(() => {
+    if (txRef) {
+      verifyPayment(txRef);
+    }
+  }, [txRef]);
+
+  const verifyPayment = async (txRef: string) => {
+    try {
+      setIsSubmitting(true);
+      setError('');
+      
+      const response = await fetch(`/api/verify-payment?tx_ref=${txRef}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        setPaymentStatus(result.paymentData);
+        setSuccess(true);
+      } else {
+        setError(result.message || 'Payment verification failed');
+      }
+    } catch (err) {
+      setError('An error occurred while verifying your payment');
+      console.error(err);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -27,7 +62,6 @@ export default function PaymentForm() {
     setError('');
 
     try {
-      // Use our own API route to proxy the request
       const response = await fetch('/api/create-payment', {
         method: 'POST',
         headers: {
@@ -44,18 +78,36 @@ export default function PaymentForm() {
       const result = await response.json();
       
       if (result.success && result.checkoutUrl) {
-        // Redirect to checkout URL
         window.location.href = result.checkoutUrl;
       } else {
         setError(result.message || 'Payment initiation failed');
-        setIsSubmitting(false);
       }
     } catch (err) {
       setError('An error occurred while processing your payment');
       console.error(err);
+    } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (success && paymentStatus) {
+    return (
+      <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
+        <h2 className="text-2xl font-bold mb-6 text-center">Payment Successful</h2>
+        
+        <div className="mb-4 p-4 bg-green-100 rounded-md">
+          <p className="text-green-700 font-medium">Thank you for your payment!</p>
+        </div>
+        
+        <div className="space-y-3">
+          <p><span className="font-medium">Transaction Reference:</span> {paymentStatus.tx_ref}</p>
+          <p><span className="font-medium">Amount:</span> {paymentStatus.amount} {paymentStatus.currency}</p>
+          <p><span className="font-medium">Status:</span> {paymentStatus.status}</p>
+          <p><span className="font-medium">Date:</span> {new Date(paymentStatus.created_at).toLocaleString()}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-md mx-auto mt-10 p-6 bg-white rounded-lg shadow-md">
