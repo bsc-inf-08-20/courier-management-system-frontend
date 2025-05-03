@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     const baseUrl =
       process.env.NODE_ENV === "production"
-        ? "https://cmis.vercel.app"
+        ? "https://cmis-one.vercel.app"
         : "http://localhost:3000";
 
     const url = "https://api.paychangu.com/payment";
