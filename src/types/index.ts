@@ -15,7 +15,7 @@ export interface PaymentStatus {
       description: string | null;
       logo: string | null;
     };
-    meta: any;
+    meta: Record<string, unknown> | null; // Replaced 'any' with more specific type
     authorization: {
       channel: string;
       card_number: string | null;
@@ -30,7 +30,7 @@ export interface PaymentStatus {
       first_name: string;
       last_name: string;
     };
-    logs: any[];
+    logs: Array<Record<string, unknown>>; // Replaced 'any[]' with more specific type
     created_at: string;
     updated_at: string;
   }
