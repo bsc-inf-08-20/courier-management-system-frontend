@@ -91,6 +91,11 @@ export default function AgentLayout({
       icon: Truck,
       title: "Comfirm pickup",
     },
+    {
+      href: "/agent_components/map",
+      icon: Box,
+      title: "Map",
+    },
     { href: "/agent_components/monthly_report", 
       icon: NewspaperIcon, 
       title: "monthly report", 

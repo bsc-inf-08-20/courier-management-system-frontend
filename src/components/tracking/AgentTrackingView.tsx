@@ -15,18 +15,20 @@ interface Packet {
   id: number;
   description: string;
   status: string;
-  origin_coordinates: { lat: number; lng: number } | null;
-  assigned_pickup_agent: {
-    user_id: number;
-  };
+  origin_coordinates?: { lat: number; lng: number } | null;
+  destination_coordinates?: { lat: number; lng: number } | null;
+  assigned_pickup_agent?: { user_id: number };
+  assigned_delivery_agent?: { user_id: number };
   hasCoordinates?: boolean;
+  [key: string]: any;
 }
 
 type AgentTrackingViewProps = {
-    apiKey: string;
-    arrivalThresholdMeters: number;
-    agentId: number; // Added agentId to the props
-  };
+  apiKey: string;
+  arrivalThresholdMeters: number;
+  agentId: number;
+  mode: "collect" | "deliver";
+};
 
 const mapContainerStyle = {
   width: "100%",
@@ -67,12 +69,12 @@ const calculateDistance = (
   return R * c;
 };
 
-const processPackets = (packets: Packet[]) => {
+const processPackets = (packets: Packet[], coordinateField: string) => {
   return packets.map(packet => ({
     ...packet,
     hasCoordinates: Boolean(
-      packet.origin_coordinates?.lat && 
-      packet.origin_coordinates?.lng
+      packet[coordinateField]?.lat && 
+      packet[coordinateField]?.lng
     )
   }));
 };
@@ -80,7 +82,8 @@ const processPackets = (packets: Packet[]) => {
 const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
   apiKey,
   arrivalThresholdMeters = 100,
-  agentId, // Make sure we're using this prop
+  agentId,
+  mode,
 }) => {
   const { decodedToken } = useAgentAuth("AGENT");
 
@@ -110,6 +113,13 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
     setIsLoading(false);
   }, []);
 
+  // Determine endpoint and coordinate field based on mode
+  const endpoint =
+    mode === "collect"
+      ? `/packets/agents/${agentId}/assigned-packets`
+      : `/packets/agents/${agentId}/packets-deliver`;
+  const coordinateField = mode === "collect" ? "origin_coordinates" : "destination_coordinates";
+
   useEffect(() => {
     const fetchPackets = async () => {
       try {
@@ -129,7 +139,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         console.log("[Debug] Making request for agent:", agentId);
         
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/packets/agents/${agentId}/assigned-packets`,
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -148,7 +158,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         console.log("[Debug] Raw packets data:", data);
 
         // Process and filter packets
-        const processedPackets = processPackets(data);
+        const processedPackets = processPackets(data, coordinateField);
         console.log("[Debug] Processed packets:", processedPackets);
 
         // Count packets with valid coordinates
@@ -169,7 +179,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
     };
 
     fetchPackets();
-  }, [agentId]);
+  }, [agentId, mode]);
 
   // Track agent's real-time location
   useEffect(() => {
@@ -219,12 +229,12 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       let closest: Packet | null = null;
 
       packets.forEach((packet) => {
-        if (packet.origin_coordinates && packet.hasCoordinates) {
+        if (packet[coordinateField] && packet.hasCoordinates) {
           const distance = calculateDistance(
             agentLocation.lat,
             agentLocation.lng,
-            packet.origin_coordinates.lat,
-            packet.origin_coordinates.lng
+            packet[coordinateField]!.lat,
+            packet[coordinateField]!.lng
           );
           if (distance < minDistance) {
             minDistance = distance;
@@ -236,7 +246,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       console.log("[AgentTrackingView] Closest packet:", closest);
       setClosestPacket(closest);
     }
-  }, [agentLocation, packets]);
+  }, [agentLocation, packets, coordinateField]);
 
   // Calculate directions when packet is selected
   useEffect(() => {
@@ -244,13 +254,13 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       selectedPacket &&
       agentLocation &&
       window.google &&
-      selectedPacket.origin_coordinates
+      selectedPacket[coordinateField]
     ) {
       const directionsService = new window.google.maps.DirectionsService();
       directionsService.route(
         {
           origin: agentLocation,
-          destination: selectedPacket.origin_coordinates,
+          destination: selectedPacket[coordinateField]!,
           travelMode: window.google.maps.TravelMode.DRIVING,
         },
         (result, status) => {
@@ -274,7 +284,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       setDirections(null);
       setTravelInfo({ distance: "N/A", duration: "N/A" });
     }
-  }, [selectedPacket, agentLocation]);
+  }, [selectedPacket, agentLocation, coordinateField]);
 
   const checkArrival = useCallback(
     (
@@ -304,22 +314,22 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
   useEffect(() => {
     if (!mapRef.current) return;
 
-    if (agentLocation && selectedPacket?.origin_coordinates) {
+    if (agentLocation && selectedPacket?.[coordinateField]) {
       // Fit both agent and packet in view
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend(agentLocation);
-      bounds.extend(selectedPacket.origin_coordinates);
+      bounds.extend(selectedPacket[coordinateField]!);
       mapRef.current.fitBounds(bounds, 100); // 100px padding
-    } else if (selectedPacket?.origin_coordinates) {
+    } else if (selectedPacket?.[coordinateField]) {
       // Center on packet if agent location is missing
-      mapRef.current.panTo(selectedPacket.origin_coordinates);
+      mapRef.current.panTo(selectedPacket[coordinateField]!);
       mapRef.current.setZoom(15);
     } else if (agentLocation) {
       // Center on agent if no packet selected
       mapRef.current.panTo(agentLocation);
       mapRef.current.setZoom(15);
     }
-  }, [agentLocation, selectedPacket]);
+  }, [agentLocation, selectedPacket, coordinateField]);
 
   useEffect(() => {
     console.log({
@@ -333,20 +343,20 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
     const packet = packets.find((p) => p.id === Number(packetId));
     setSelectedPacket(packet || null);
     
-    if (packet?.origin_coordinates) {
-      mapRef.current?.panTo(packet.origin_coordinates);
+    if (packet?.[coordinateField]) {
+      mapRef.current?.panTo(packet[coordinateField]!);
       mapRef.current?.setZoom(15);
     }
-  }, [packets]);
+  }, [packets, coordinateField]);
 
   useEffect(() => {
-    if (mapRef.current && agentLocation && selectedPacket?.origin_coordinates) {
+    if (mapRef.current && agentLocation && selectedPacket?.[coordinateField]) {
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend(agentLocation);
-      bounds.extend(selectedPacket.origin_coordinates);
+      bounds.extend(selectedPacket[coordinateField]!);
       mapRef.current.fitBounds(bounds, 50); // 50px padding
     }
-  }, [agentLocation, selectedPacket]);
+  }, [agentLocation, selectedPacket, coordinateField]);
 
   return (
     <div className="container mx-auto p-4">
@@ -392,7 +402,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         </select>
       </div>
 
-      {closestPacket && closestPacket.origin_coordinates && (
+      {closestPacket && closestPacket[coordinateField] && (
         <div className="bg-green-50 p-3 rounded mb-4">
           <p>
             Closest Packet: #{closestPacket.id} - {closestPacket.description}
@@ -403,8 +413,8 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
               ? `${calculateDistance(
                   agentLocation.lat,
                   agentLocation.lng,
-                  closestPacket.origin_coordinates.lat,
-                  closestPacket.origin_coordinates.lng
+                  closestPacket[coordinateField]!.lat,
+                  closestPacket[coordinateField]!.lng
                 ).toFixed(2)} km`
               : "Calculating..."}
           </p>
@@ -420,7 +430,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         <LoadScript googleMapsApiKey={apiKey}>
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
-            center={agentLocation || selectedPacket?.origin_coordinates || { lat: 0, lng: 0 }}
+            center={agentLocation || selectedPacket?.[coordinateField] || { lat: 0, lng: 0 }}
             zoom={14}
             options={mapOptions}
             onLoad={onMapLoad}
@@ -435,10 +445,10 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
             )}
 
             {packets.map((packet) =>
-              packet.origin_coordinates && packet.hasCoordinates && (
+              packet[coordinateField] && packet.hasCoordinates && (
                 <Marker
                   key={packet.id}
-                  position={packet.origin_coordinates}
+                  position={packet[coordinateField]!}
                   icon={{
                     url: selectedPacket?.id === packet.id
                       ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
