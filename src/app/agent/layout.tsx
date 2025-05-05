@@ -16,6 +16,8 @@ import {
   NewspaperIcon,
   SettingsIcon,
   UserIcon,
+  TrainTrackIcon,
+  TruckIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -26,7 +28,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
 import { useAgentAuth } from "@/hooks/agentAuth";
+=======
+import { report } from "process";
+import { profile } from "console";
+import Dashboard from "./desiplaygraphs/page";
+import { agentAuth } from "@/hooks/agentAuth";
+import Tracking from "../admin/tracking/page";
+import { map } from "leaflet";
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
 
 export default function AgentLayout({
   children,
@@ -45,7 +56,11 @@ export default function AgentLayout({
   const router = useRouter(); // intialize the router
 
   // Use auth hook to handle token validation and automatic logout
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
     useAgentAuth("AGENT");
+=======
+    agentAuth("AGENT");
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
 
      // Detect screen size and set initial sidebar state
   useEffect(() => {
@@ -84,44 +99,68 @@ export default function AgentLayout({
   
   // Define navigation items
   const navItems = [
-    { href: "/agent_components", icon: Box, title: "Agent Dashboard" },
+    { href: "/agent", 
+      icon: Box, 
+      title: "Agent Dashboard" },
+      
     
     {
-      href: "/agent_components/confirm_pickup",
+      href: "/agent/confirm-pickups",
       icon: Truck,
       title: "Comfirm pickup",
     },
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
     {
       href: "/agent_components/map",
       icon: Box,
       title: "Map",
     },
     { href: "/agent_components/monthly_report", 
+=======
+  
+    { href: "/agent/deliver-packet",
+        icon: Truck, 
+        title: "Deliver Packet" },
+
+    { href: "/agent/monthly-report", 
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
       icon: NewspaperIcon, 
       title: "monthly report", 
     },
-    { href: "/agent_components/desiplaygraphs", 
+    { href: "/agent/desiplaygraphs", 
       icon: NewspaperIcon, 
       title: "Graphs" },
 
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
     { href: "/agent_components/confirm_customer", 
       icon: Users, 
       title: "Enter Customer's Details" },
 
     { href: "/agent_components/notification", 
+=======
+    { href: "/agent/confirm-customer", 
+      icon: Users, 
+      title: "Enter Customer's Details" },
+
+    { href: "/agent/notification", 
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
       icon: Bell,
       title: "Notifications",
      },
 
-     { href: "/agent_components/profile", 
+     { href: "/agent/profile", 
       icon: UserIcon, 
       title: "profile" },
 
-     { href: "/agent_components/settings", 
+     { href: "/agent/settings", 
       icon: SettingsIcon, 
       title: "settings" },
       
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
     // { href: "/agent/agents", icon: Users, title: "Agents" },
+=======
+     //{ href: "/agent/Agent", icon:User, title: "Agent" },
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
     // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
 
@@ -133,7 +172,11 @@ export default function AgentLayout({
       localStorage.removeItem("token");
       localStorage.removeItem("refresh_token");
       toast.success("Logged out successfully");
+<<<<<<< HEAD:src/app/agent_components/layout.tsx
       router.push("/agent_auth/login");
+=======
+      router.push("/agent-auth/login");
+>>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent/layout.tsx
     };
   return (
     <div className="w-full flex h-screen bg-gray-50">

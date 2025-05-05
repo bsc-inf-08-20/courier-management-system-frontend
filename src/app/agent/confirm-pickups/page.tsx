@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -76,18 +76,14 @@ function getErrorMessage(error: unknown): string {
 const AgentPickupPage = () => {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(
-    null
-  );
+  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(null);
   const [weightDialogOpen, setWeightDialogOpen] = useState<number | null>(null);
   const [newWeight, setNewWeight] = useState<number | null>(null);
   const [editingWeightId, setEditingWeightId] = useState<number | null>(null);
   const [editingWeightValue, setEditingWeightValue] = useState<number>(0);
   const [agentCity, setAgentCity] = useState<string>("");
   const [agentId, setAgentId] = useState<number | null>(null);
-  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(
-    null
-  );
+  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(null);
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -398,7 +394,11 @@ const AgentPickupPage = () => {
                     </Button>
                   )}
                   {request.packet.status === "collected" ? (
-                    <Button size="sm" variant="outline" disabled>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled
+                    >
                       Collected
                     </Button>
                   ) : (
@@ -433,9 +433,7 @@ const AgentPickupPage = () => {
               type="number"
               placeholder="Enter weight in kg"
               value={editingWeightValue}
-              onChange={(e) =>
-                setEditingWeightValue(parseFloat(e.target.value))
-              }
+              onChange={(e) => setEditingWeightValue(parseFloat(e.target.value))}
               min="0.1"
               step="0.1"
             />

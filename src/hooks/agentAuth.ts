@@ -1,4 +1,3 @@
-// hooks/agentAuth.ts
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -53,7 +52,11 @@ export function useAgentAuth(requiredRole = "AGENT") {
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) return false;
+        console.log("Sending refresh token:", refreshToken);
+        
+        if (!refreshToken) {
+          return false;
+        }
 
         const response = await fetch("http://localhost:3001/auth/refresh", {
           method: "POST",
@@ -63,12 +66,16 @@ export function useAgentAuth(requiredRole = "AGENT") {
 
         if (response.ok) {
           const data = await response.json();
+          console.log("Received new tokens:", data);
           localStorage.setItem("token", data.access_token);
           localStorage.setItem("refresh_token", data.refresh_token);
+          
+          // Update decoded token with new token payload
           const payload = JSON.parse(atob(data.access_token.split(".")[1]));
           setDecodedToken(payload);
           return true;
         } else {
+          console.error("Refresh failed:", await response.json());
           return false;
         }
       } catch (error) {

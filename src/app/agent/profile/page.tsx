@@ -94,10 +94,11 @@ const ProfilePage = () => {
       <div className="mt-6 flex justify-center">
         <Button 
          className="bg-blue-600 hover:bg-blue-700 text-white"
-          onClick={() => {
-            fetch("/api/auth/logout", { method: "POST" });
-            router.push("/login");
-          }}
+          // onClick={() => {
+          //   fetch("/api/auth/logout", { method: "POST" });
+          //   router.push("agent_auth/login");
+          // }}
+          onClick={() => router.push("/agent_auth/login")}
         >
           Logout
         </Button>
