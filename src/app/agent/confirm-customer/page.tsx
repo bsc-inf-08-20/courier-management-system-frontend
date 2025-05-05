@@ -13,7 +13,7 @@ const AgentPage = () => {
 
     // ✅ Validate weight to ensure it's a valid number
     if (isNaN(Number(weight)) || Number(weight) <= 0) {
-      alert("❌ Weight must be a valid positive number.");
+      alert("Weight must be a valid positive number.");
       return;
     }
 
@@ -43,10 +43,10 @@ const AgentPage = () => {
         setLocation('');
         setWeight('');
       } else {
-        alert("❌ Failed to send information. Please check your input and try again.");
+        alert(" Failed to send information. Please check your input and try again.");
       }
     } catch (error) {
-      alert("❌ Something went wrong. Please try again.");
+      alert(" Something went wrong. Please try again.");
     }
   };
 

@@ -98,16 +98,16 @@ export default function AgentLayout({
       
     
     {
-      href: "/agent/confirm_pickups",
+      href: "/agent/confirm-pickups",
       icon: Truck,
       title: "Comfirm pickup",
     },
   
-    { href: "/agent/deliver_packet",
+    { href: "/agent/deliver-packet",
         icon: Truck, 
         title: "Deliver Packet" },
 
-    { href: "/agent/monthly_report", 
+    { href: "/agent/monthly-report", 
       icon: NewspaperIcon, 
       title: "monthly report", 
     },
@@ -115,7 +115,7 @@ export default function AgentLayout({
       icon: NewspaperIcon, 
       title: "Graphs" },
 
-    { href: "/agent/confirm_customer", 
+    { href: "/agent/confirm-customer", 
       icon: Users, 
       title: "Enter Customer's Details" },
 
@@ -144,7 +144,7 @@ export default function AgentLayout({
       localStorage.removeItem("token");
       localStorage.removeItem("refresh_token");
       toast.success("Logged out successfully");
-      router.push("/agent_auth/login");
+      router.push("/agent-auth/login");
     };
   return (
     <div className="w-full flex h-screen bg-gray-50">
