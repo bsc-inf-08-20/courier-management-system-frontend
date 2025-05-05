@@ -49,31 +49,20 @@ const DispatchPacketsPage = () => {
         setAdminCity(adminData.city || "");
 
         const [vehiclesRes, readyPacketsRes, inTransitRes] = await Promise.all([
-          fetch(
-            `http://localhost:3001/packets/available-vehicles?city=${adminData.city}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          ),
-          fetch(
-            `http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          ),
-          fetch(
-            `http://localhost:3001/packets/in-transit?origin=${adminData.city}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          ),
+          fetch(`http://localhost:3001/packets/available-vehicles?city=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`http://localhost:3001/packets/in-transit?origin=${adminData.city}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
         ]);
 
         if (!vehiclesRes.ok) throw new Error("Failed to fetch vehicles");
-        if (!readyPacketsRes.ok)
-          throw new Error("Failed to fetch ready packets");
-        if (!inTransitRes.ok)
-          throw new Error("Failed to fetch in-transit packets");
+        if (!readyPacketsRes.ok) throw new Error("Failed to fetch ready packets");
+        if (!inTransitRes.ok) throw new Error("Failed to fetch in-transit packets");
 
         const vehiclesData = await vehiclesRes.json();
         const readyPacketsData = await readyPacketsRes.json();
@@ -110,11 +99,7 @@ const DispatchPacketsPage = () => {
         Inter-hub Dispatching ({adminCity || "Loading..."})
       </h2>
 
-      <VehiclesList
-        vehicles={vehicles}
-        setVehicles={setVehicles}
-        adminCity={adminCity}
-      />
+      <VehiclesList vehicles={vehicles} setVehicles={setVehicles} adminCity={adminCity} />
 
       <Tabs defaultValue="ready-for-dispatch" onValueChange={setActiveTab}>
         <TabsList className="w-full mb-6">
