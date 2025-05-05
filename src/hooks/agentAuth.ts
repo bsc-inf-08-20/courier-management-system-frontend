@@ -1,9 +1,11 @@
-import { useEffect } from "react";
+// hooks/agentAuth.ts
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export function useAgentAuth(requiredRole = "AGENT") {
   const router = useRouter();
-  let isRefreshing = false; // Lock to prevent concurrent refreshes
+  const [decodedToken, setDecodedToken] = useState<any>(null);
+  let isRefreshing = false;
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -15,6 +17,7 @@ export function useAgentAuth(requiredRole = "AGENT") {
 
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
+        setDecodedToken(payload);
         const isExpired = payload.exp * 1000 < Date.now();
         const hasValidRole = payload.role === requiredRole;
 
@@ -62,6 +65,8 @@ export function useAgentAuth(requiredRole = "AGENT") {
           const data = await response.json();
           localStorage.setItem("token", data.access_token);
           localStorage.setItem("refresh_token", data.refresh_token);
+          const payload = JSON.parse(atob(data.access_token.split(".")[1]));
+          setDecodedToken(payload);
           return true;
         } else {
           return false;
@@ -78,4 +83,6 @@ export function useAgentAuth(requiredRole = "AGENT") {
     const interval = setInterval(checkAuth, 30000);
     return () => clearInterval(interval);
   }, [router, requiredRole]);
+
+  return { decodedToken };
 }

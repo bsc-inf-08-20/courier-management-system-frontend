@@ -1,14 +1,23 @@
-import PacketTrackingMap from "@/components/packet/PacketTrackingMap";
+"use client";
+import AgentTrackingView from "@/components/tracking/AgentTrackingView";
+import { useAgentAuth } from "@/hooks/agentAuth";
 
-export default function TrackingPage() {
+export default function AgentTrackingPage() {
+  const { decodedToken } = useAgentAuth("AGENT");
+  const agentId = decodedToken?.user_id;
+
+  if (!agentId) {
+    return <div>Loading...</div>;
+  }
+
+  console.log("[Debug] Rendering AgentTrackingPage for agent:", agentId, decodedToken);
+
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-6">Courier Tracking System</h1>
-      
-      <PacketTrackingMap
+    <div className="min-h-screen">
+      <AgentTrackingView 
+        agentId={agentId}
         apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
-        backendUrl={process.env.NEXT_PUBLIC_API_URL || ''}
-        userId={123} // This should come from your auth system
+        arrivalThresholdMeters={100}
       />
     </div>
   );
