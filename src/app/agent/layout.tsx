@@ -34,7 +34,6 @@ import { profile } from "console";
 import Dashboard from "./desiplaygraphs/page";
 import { agentAuth } from "@/hooks/agentAuth";
 import Tracking from "../admin/tracking/page";
-import TrackCustomerLocationPage from "./tracking_customer_location/page";
 import { map } from "leaflet";
 
 export default function AgentLayout({
@@ -103,13 +102,9 @@ export default function AgentLayout({
       icon: Truck,
       title: "Comfirm pickup",
     },
-    
-    { href: "/agent/tracking_customer_location", 
-      icon: TrainTrackIcon, 
-      title: "Tracking Location" },
-
+  
     { href: "/agent/deliver_packet",
-        icon: TruckIcon, 
+        icon: Truck, 
         title: "Deliver Packet" },
 
     { href: "/agent/monthly_report", 

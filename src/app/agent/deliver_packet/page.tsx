@@ -12,6 +12,7 @@ interface Packet {
   destination: string;
   status: "Pending Delivery" | "Done";
   collected: boolean;
+  date: Date;
 }
 
 export default function AgentDeliveryPage() {
@@ -24,6 +25,7 @@ export default function AgentDeliveryPage() {
       try {
         const response = await fetch('/api/agent/packets');
         const data = await response.json();
+        console.log("Packets for current agent:", data); // new line added
         setPackets(data);
       } catch (error) {
         console.error("Error fetching packets:", error);
@@ -119,8 +121,10 @@ export default function AgentDeliveryPage() {
             <table className="min-w-full">
               <thead className="bg-gray-50">
                 <tr>
+                
                   <th className="p-3 text-left text-sm md:text-base">Customer</th>
                   <th className="p-3 text-left text-sm md:text-base">Destination</th>
+                  <th className="p-3 text-left text-sm md:text-base">Date</th> 
                   <th className="p-3 text-left text-sm md:text-base">Status</th>
                   <th className="p-3 text-left text-sm md:text-base">Mark Collected</th>
                 </tr>
@@ -131,6 +135,7 @@ export default function AgentDeliveryPage() {
                     <tr key={packet.id} className="border-t">
                       <td className="p-3 text-sm md:text-base">{packet.customerName}</td>
                       <td className="p-3 text-sm md:text-base">{packet.destination}</td>
+                      <td className="p-3 text-sm md:text-base">{new Date(packet.date).toLocaleDateString()}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs md:text-sm ${
                           packet.status === "Pending Delivery" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
@@ -167,10 +172,12 @@ export default function AgentDeliveryPage() {
                 <tr>
                   <th className="p-3 text-left text-sm md:text-base">Customer</th>
                   <th className="p-3 text-left text-sm md:text-base">Destination</th>
+                  <th className="p-3 text-left text-sm md:text-base">Date</th> 
                   <th className="p-3 text-left text-sm md:text-base">Tracking ID</th> 
                   <th className="p-3 text-left text-sm md:text-base">Status</th>
                   <th className="p-3 text-left text-sm md:text-base">Confirm Received</th>
                 </tr>
+                
               </thead>
               <tbody>
                 {collectedPackets.length > 0 ? (
@@ -179,6 +186,7 @@ export default function AgentDeliveryPage() {
                       <td className="p-3 text-sm md:text-base">{packet.customerName}</td>
                       <td className="p-3 text-sm md:text-base">{packet.destination}</td>
                       <td className="p-3 text-sm md:text-base text-blue-600">{packet.trackingId}</td> 
+                      <td className="p-3 text-sm md:text-base">{new Date(packet.date).toLocaleDateString()}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded text-xs md:text-sm ${
                           packet.status === "Pending Delivery" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
