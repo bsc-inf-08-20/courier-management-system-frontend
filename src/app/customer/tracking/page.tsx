@@ -1,10 +1,12 @@
 "use client";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/customer/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Truck, Package, MapPin } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 
 interface StatusItem {
@@ -18,6 +20,8 @@ interface TrackingData {
 }
 
 export default function Tracking() {
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [trackingResult, setTrackingResult] = useState<TrackingData | null>(null);
   const [error, setError] = useState("");
@@ -34,6 +38,10 @@ export default function Tracking() {
     ],
   };
 
+  useEffect(() => {
+    if (!isAuthenticated) router.push("/customer/auth");
+  }, [isAuthenticated, router]);
+
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,6 +56,8 @@ export default function Tracking() {
       setLoading(false);
     }, 1000);
   };
+
+  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen w-full bg-gray-100 flex flex-col">

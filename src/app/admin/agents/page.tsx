@@ -38,7 +38,7 @@ interface User {
   name: string;
   email: string;
   phone_number: string;
-  address: string;
+  city: string;
   created_at: string;
   role: string;
 }
@@ -126,7 +126,7 @@ export default function AgentPage() {
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Phone</TableHead>
-            <TableHead>Address</TableHead>
+            <TableHead>city</TableHead>
             <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -136,7 +136,7 @@ export default function AgentPage() {
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>{user.phone_number}</TableCell>
-              <TableCell>{user.address}</TableCell>
+              <TableCell>{user.city}</TableCell>
               <TableCell className="flex gap-2">
                 <Button
                   variant="outline"
@@ -201,11 +201,11 @@ function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
   const [formData, setFormData] = useState<{
     name: string;
     phone_number: string;
-    address: string;
+    city: string;
   }>({
     name: user.name,
     phone_number: user.phone_number,
-    address: user.address,
+    city: user.city,
   });
   const [saving, setSaving] = useState<boolean>(false);
 
@@ -258,10 +258,10 @@ function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
             placeholder="Phone Number"
           />
           <Input
-            name="address"
-            value={formData.address}
+            name="city"
+            value={formData.city}
             onChange={handleChange}
-            placeholder="Address"
+            placeholder="city"
           />
         </div>
         <DialogFooter>
