@@ -1,6 +1,6 @@
 // components/tracking/AgentTrackingView.tsx
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import {
   GoogleMap,
   LoadScript,
@@ -104,14 +104,40 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
   const watchIdRef = useRef<number | null>(null);
   const [hasArrived, setHasArrived] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false);
 
   const mapRef = useRef<google.maps.Map | null>(null);
 
   // Add this function to handle map loads
   const onMapLoad = useCallback((map: google.maps.Map) => {
     mapRef.current = map;
+    setIsGoogleMapsLoaded(true);
     setIsLoading(false);
   }, []);
+
+  // Create memoized marker configurations
+  const markerConfigs = useMemo(() => {
+    if (!isGoogleMapsLoaded || !window.google) return null;
+    
+    return {
+      agent: {
+        url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
+        scaledSize: new window.google.maps.Size(40, 40)
+      },
+      selected: {
+        url: "http://maps.google.com/mapfiles/ms/icons/green-dot.png",
+        scaledSize: new window.google.maps.Size(40, 40)
+      },
+      closest: {
+        url: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png",
+        scaledSize: new window.google.maps.Size(40, 40)
+      },
+      default: {
+        url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+        scaledSize: new window.google.maps.Size(40, 40)
+      }
+    };
+  }, [isGoogleMapsLoaded]);
 
   // Determine endpoint and coordinate field based on mode
   const endpoint =
@@ -427,7 +453,14 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       </div>
 
       <div className="border rounded-lg overflow-hidden">
-        <LoadScript googleMapsApiKey={apiKey}>
+        <LoadScript 
+          googleMapsApiKey={apiKey}
+          onLoad={() => setIsGoogleMapsLoaded(true)}
+          onError={(error) => {
+            console.error("Google Maps loading error:", error);
+            setError("Failed to load Google Maps");
+          }}
+        >
           <GoogleMap
             mapContainerStyle={mapContainerStyle}
             center={agentLocation || selectedPacket?.[coordinateField] || { lat: 0, lng: 0 }}
@@ -435,45 +468,50 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
             options={mapOptions}
             onLoad={onMapLoad}
           >
-            {agentLocation && (
-              <Marker
-                position={agentLocation}
-                icon={{
-                  url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png",
-                }}
-              />
-            )}
+            {isGoogleMapsLoaded && markerConfigs && (
+              <>
+                {agentLocation && (
+                  <Marker
+                    position={agentLocation}
+                    icon={markerConfigs.agent}
+                  />
+                )}
 
-            {packets.map((packet) =>
-              packet[coordinateField] && packet.hasCoordinates && (
-                <Marker
-                  key={packet.id}
-                  position={packet[coordinateField]!}
-                  icon={{
-                    url: selectedPacket?.id === packet.id
-                      ? "http://maps.google.com/mapfiles/ms/icons/green-dot.png"
-                      : closestPacket?.id === packet.id
-                      ? "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
-                      : "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-                    scaledSize: new window.google.maps.Size(40, 40)
-                  }}
-                  animation={selectedPacket?.id === packet.id ? google.maps.Animation.BOUNCE : undefined}
-                  onClick={() => handlePacketSelection(packet.id.toString())}
-                />
-              )
-            )}
+                {packets.map((packet) =>
+                  packet[coordinateField] && packet.hasCoordinates && (
+                    <Marker
+                      key={packet.id}
+                      position={packet[coordinateField]!}
+                      icon={
+                        selectedPacket?.id === packet.id
+                          ? markerConfigs.selected
+                          : closestPacket?.id === packet.id
+                          ? markerConfigs.closest
+                          : markerConfigs.default
+                      }
+                      animation={
+                        selectedPacket?.id === packet.id 
+                          ? google.maps.Animation.BOUNCE 
+                          : undefined
+                      }
+                      onClick={() => handlePacketSelection(packet.id.toString())}
+                    />
+                  )
+                )}
 
-            {directions && (
-              <DirectionsRenderer
-                options={{
-                  directions,
-                  suppressMarkers: true,
-                  polylineOptions: {
-                    strokeColor: "#3b82f6",
-                    strokeWeight: 5,
-                  },
-                }}
-              />
+                {directions && (
+                  <DirectionsRenderer
+                    options={{
+                      directions,
+                      suppressMarkers: true,
+                      polylineOptions: {
+                        strokeColor: "#3b82f6",
+                        strokeWeight: 5,
+                      },
+                    }}
+                  />
+                )}
+              </>
             )}
           </GoogleMap>
         </LoadScript>

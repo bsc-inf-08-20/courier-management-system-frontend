@@ -9,6 +9,9 @@ export default {
   ],
   theme: {
   	extend: {
+		fontFamily: {
+			sans: ["var(--font-poppins)"], // This will make Poppins the default sans font
+		  },
   		colors: {
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
