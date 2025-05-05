@@ -8,7 +8,6 @@ import { motion } from "framer-motion";
 import { AuthProvider } from "@/context/AuthContext";
 
 export default function Home() {
-<<<<<<< HEAD
   return (  
       <div className="min-h-screen min-w-full bg-gray-100 flex flex-col">
         <Navbar />
@@ -49,48 +48,6 @@ export default function Home() {
                 </Button>
               </Link>
             </div>
-=======
-  return (
-    <div className="min-h-screen min-w-full bg-gray-100 flex flex-col">
-      <Navbar />
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="flex-grow flex items-center justify-center py-16 bg-gradient-to-br from-blue-600 to-indigo-700 text-white"
-      >
-        <div className="max-w-4xl mx-auto text-center px-6">
-          <motion.h2
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            className="text-4xl md:text-6xl font-extrabold mb-4 tracking-tight"
-          >
-            Your Trusted Courier in Malawi
-          </motion.h2>
-          
-          <p className="text-lg md:text-xl mb-8 opacity-90">
-            Send packages with ease—book, track, and deliver seamlessly.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Link href="/customer/booking">
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-white text-blue-600 hover:bg-white/20 shadow-lg transition-all"
-              >
-                Book Now <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-            <Link href="/customer/tracking">
-              <Button
-                size="lg"
-                variant="outline"
-                className="text-blue-600 border-white hover:bg-white/20 shadow-lg transition-all"
-              >
-                Track Package
-              </Button>
-            </Link>
->>>>>>> 466825198ddbcde1e9ed1b70fcd3f09ee5663447
           </div>
         </motion.section>
         <section className="py-16 max-w-6xl mx-auto px-6">

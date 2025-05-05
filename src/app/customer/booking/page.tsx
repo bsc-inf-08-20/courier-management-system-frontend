@@ -14,8 +14,9 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useState, useEffect } from "react";
 import { Package, Truck } from "lucide-react";
-import Link from "next/link";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import Link from "next/link";
+import { MapComponent } from "@/components/MapComponent";
 
 export default function Booking() {
   const { isAuthenticated } = useAuth();
@@ -26,40 +27,90 @@ export default function Booking() {
     instructions: "",
     packageDescription: "",
     pickupLocation: "",
+    pickupCoordinates: { lat: 0, lng: 0 },
     deliveryLocation: "",
+    deliveryCoordinates: { lat: 0, lng: 0 },
     pickupTime: "",
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [apiError, setApiError] = useState(null);
+  const [bookingId, setBookingId] = useState(null);
+  const [showPickupMap, setShowPickupMap] = useState(false);
+  const [showDeliveryMap, setShowDeliveryMap] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) router.push("/customer/auth");
   }, [isAuthenticated, router]);
 
-  const handleChange = (field: keyof typeof formData, value: string) => {
+  const handleChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     setErrors((prev) => ({ ...prev, [field]: "" }));
+    setApiError(null);
   };
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
+    const newErrors = {};
     if (!formData.packageType) newErrors.packageType = "Package type is required";
     if (!formData.pickupLocation) newErrors.pickupLocation = "Pick-up location is required";
     if (!formData.deliveryLocation) newErrors.deliveryLocation = "Delivery location is required";
     if (!formData.packageDescription) newErrors.packageDescription = "Package description is required";
     if (!formData.pickupTime) newErrors.pickupTime = "Pick-up time is required";
+    if (formData.pickupCoordinates.lat === 0 || formData.pickupCoordinates.lng === 0)
+      newErrors.pickupCoordinates = "Please set pick-up location on map";
+    if (formData.deliveryCoordinates.lat === 0 || formData.deliveryCoordinates.lng === 0)
+      newErrors.deliveryCoordinates = "Please set delivery location on map";
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const validationErrors = validateForm();
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
       return;
     }
-    console.log("Booking Submitted:", formData);
-    setIsSubmitted(true);
+
+    setApiError(null);
+    const token = localStorage.getItem("token");
+    if (!token) {
+      setApiError("You must be logged in to book a pickup.");
+      return;
+    }
+
+    const pickupRequestData = {
+      package_type: formData.packageType,
+      weight: parseFloat(formData.weight) || 0,
+      special_instructions: formData.instructions,
+      package_description: formData.packageDescription,
+      origin_address: formData.pickupLocation,
+      origin_coordinates: formData.pickupCoordinates,
+      destination_address: formData.deliveryLocation,
+      destination_coordinates: formData.deliveryCoordinates,
+      pickup_time: formData.pickupTime,
+    };
+
+    try {
+      const response = await fetch("http://localhost:3001/pickup/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(pickupRequestData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to request pickup");
+      }
+
+      const result = await response.json();
+      setBookingId(result.id || "12345");
+      setIsSubmitted(true);
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "An error occurred while booking.");
+    }
   };
 
   if (!isAuthenticated) return null;
@@ -72,7 +123,7 @@ export default function Booking() {
           <h2 className="text-3xl font-bold text-green-600 mb-6">
             Booking Confirmed!
           </h2>
-          <p>Your booking ID is #12345. You’ll receive a confirmation soon.</p>
+          <p>Your booking ID is #{bookingId}. You’ll receive a confirmation soon.</p>
           <Link href="/customer/tracking">
             <Button className="mt-4">Track Your Package</Button>
           </Link>
@@ -88,7 +139,12 @@ export default function Booking() {
         <h2 className="text-3xl font-bold text-gray-800 mb-6">
           Book a Courier
         </h2>
-        <form onSubmit={handleSubmit} className="space-y-6">
+        {apiError && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertDescription>{apiError}</AlertDescription>
+          </Alert>
+        )}
+        <div className="space-y-6">
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center">
               <Package className="h-5 w-5 mr-2 text-blue-500" /> Package Details
@@ -135,26 +191,78 @@ export default function Booking() {
           </div>
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Locations</h3>
-            <Input
-              placeholder="Pick-Up Location (e.g., Area 47, near Shoprite)"
-              value={formData.pickupLocation}
-              onChange={(e) => handleChange("pickupLocation", e.target.value)}
-            />
-            {errors.pickupLocation && (
-              <Alert variant="destructive">
-                <AlertDescription>{errors.pickupLocation}</AlertDescription>
-              </Alert>
-            )}
-            <Input
-              placeholder="Delivery Location (e.g., Mzuzu Central Market)"
-              value={formData.deliveryLocation}
-              onChange={(e) => handleChange("deliveryLocation", e.target.value)}
-            />
-            {errors.deliveryLocation && (
-              <Alert variant="destructive">
-                <AlertDescription>{errors.deliveryLocation}</AlertDescription>
-              </Alert>
-            )}
+            <div>
+              <Input
+                placeholder="Pick-Up Location (e.g., Area 47, near Shoprite)"
+                value={formData.pickupLocation}
+                onChange={(e) => handleChange("pickupLocation", e.target.value)}
+              />
+              <Button
+                type="button"
+                onClick={() => setShowPickupMap(!showPickupMap)}
+                className="mt-2"
+              >
+                {showPickupMap ? "Hide Map" : "Set Pick-Up Location on Map"}
+              </Button>
+              {showPickupMap && (
+                <MapComponent
+                  initialCenter={{ lat: -13.9626, lng: 33.7741 }}
+                  onLocationSelect={(coords) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      pickupCoordinates: coords,
+                    }))
+                  }
+                  selectedCoordinates={formData.pickupCoordinates}
+                />
+              )}
+              {formData.pickupCoordinates.lat !== 0 && formData.pickupCoordinates.lng !== 0 && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Selected Pick-Up: Lat {formData.pickupCoordinates.lat.toFixed(4)}, Lng {formData.pickupCoordinates.lng.toFixed(4)}
+                </p>
+              )}
+              {errors.pickupCoordinates && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertDescription>{errors.pickupCoordinates}</AlertDescription>
+                </Alert>
+              )}
+            </div>
+            <div>
+              <Input
+                placeholder="Delivery Location (e.g., Mzuzu Central Market)"
+                value={formData.deliveryLocation}
+                onChange={(e) => handleChange("deliveryLocation", e.target.value)}
+              />
+              <Button
+                type="button"
+                onClick={() => setShowDeliveryMap(!showDeliveryMap)}
+                className="mt-2"
+              >
+                {showDeliveryMap ? "Hide Map" : "Set Delivery Location on Map"}
+              </Button>
+              {showDeliveryMap && (
+                <MapComponent
+                  initialCenter={{ lat: -13.9626, lng: 33.7741 }}
+                  onLocationSelect={(coords) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      deliveryCoordinates: coords,
+                    }))
+                  }
+                  selectedCoordinates={formData.deliveryCoordinates}
+                />
+              )}
+              {formData.deliveryCoordinates.lat !== 0 && formData.deliveryCoordinates.lng !== 0 && (
+                <p className="text-sm text-gray-600 mt-2">
+                  Selected Delivery: Lat {formData.deliveryCoordinates.lat.toFixed(4)}, Lng {formData.deliveryCoordinates.lng.toFixed(4)}
+                </p>
+              )}
+              {errors.deliveryCoordinates && (
+                <Alert variant="destructive" className="mt-2">
+                  <AlertDescription>{errors.deliveryCoordinates}</AlertDescription>
+                </Alert>
+              )}
+            </div>
           </div>
           <div className="space-y-4">
             <h3 className="text-lg font-semibold flex items-center">
@@ -182,20 +290,24 @@ export default function Booking() {
           </div>
           <div className="text-right">
             <Button
-              type="submit"
+              onClick={handleSubmit}
               disabled={
                 !formData.packageType ||
                 !formData.pickupLocation ||
                 !formData.deliveryLocation ||
                 !formData.pickupTime ||
-                !formData.packageDescription
+                !formData.packageDescription ||
+                formData.pickupCoordinates.lat === 0 ||
+                formData.pickupCoordinates.lng === 0 ||
+                formData.deliveryCoordinates.lat === 0 ||
+                formData.deliveryCoordinates.lng === 0
               }
               className="bg-blue-600 hover:bg-blue-700"
             >
               Confirm Booking
             </Button>
           </div>
-        </form>
+        </div>
       </main>
     </div>
   );

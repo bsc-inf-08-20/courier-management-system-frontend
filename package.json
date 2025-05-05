@@ -31,11 +31,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "formik": "^2.4.6",
-<<<<<<< HEAD
-    "framer-motion": "^10.18.0",
-=======
     "framer-motion": "^12.6.2",
->>>>>>> 4d5c7fddf7affa3478f6db14e36de6dd91a53c39
     "leaflet": "^1.9.4",
     "lucide-react": "^0.476.0",
     "next": "^15.2.4",
@@ -45,12 +41,8 @@
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.54.2",
-<<<<<<< HEAD
-    "react-leaflet": "^4.2.1",
-=======
     "react-leaflet": "^5.0.0",
     "react-qr-code": "^2.0.15",
->>>>>>> 4d5c7fddf7affa3478f6db14e36de6dd91a53c39
     "react-router-dom": "^7.3.0",
     "shadcn-ui": "^0.9.5",
     "sonner": "^2.0.1",

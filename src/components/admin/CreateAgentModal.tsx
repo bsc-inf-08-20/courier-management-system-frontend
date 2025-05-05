@@ -19,7 +19,7 @@ interface Agent {
   name: string;
   email: string;
   phone_number: string;
-  address: string;
+  city: string;
   created_at: string;
   role: string;
 }
@@ -35,7 +35,7 @@ export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
     email: "",
     password: "",
     phone_number: "",
-    address: "",
+    city: "",
   });
   const [loading, setLoading] = useState(false);
 
@@ -78,7 +78,7 @@ export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
         email: "",
         password: "",
         phone_number: "",
-        address: "",
+        city: "",
       });
     } catch (error) {
       console.error("Error creating agent:", error);
@@ -148,11 +148,11 @@ export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
           </div>
 
           <div>
-            <Label htmlFor="address">Address</Label>
+            <Label htmlFor="city">city</Label>
             <Input
-              id="address"
-              name="address"
-              value={formData.address}
+              id="city"
+              name="city"
+              value={formData.city}
               onChange={handleChange}
               required
             />

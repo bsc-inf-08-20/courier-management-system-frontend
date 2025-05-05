@@ -1,4 +1,3 @@
-// /src/components/customer/LoginForm.tsx
 "use client";
 import { useState } from "react";
 import { useAuth } from "@/context/AuthContext";

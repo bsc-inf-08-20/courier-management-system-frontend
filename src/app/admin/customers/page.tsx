@@ -29,7 +29,7 @@ interface User {
   name: string;
   email: string;
   phone_number: string;
-  address: string;
+  city: string;
   created_at: string;
   role: string;
 }
@@ -100,7 +100,7 @@ export default function CustomersPage() {
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Phone</TableHead>
-              <TableHead>Address</TableHead>
+              <TableHead>city</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -110,7 +110,7 @@ export default function CustomersPage() {
                 <TableCell>{user.name}</TableCell>
                 <TableCell>{user.email}</TableCell>
                 <TableCell>{user.phone_number}</TableCell>
-                <TableCell>{user.address}</TableCell>
+                <TableCell>{user.city}</TableCell>
                 <TableCell>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
