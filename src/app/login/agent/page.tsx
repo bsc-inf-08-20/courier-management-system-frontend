@@ -2,26 +2,26 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link"; // Import Link for navigation
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
+import Image from "next/image";
 
-export default function AdminLoginPage() {
+export default function AgentLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login, isAuthenticated, userRole, isLoading } = useAuth();
+  const { login, isAuthenticated, userRole, isLoading } = useAuth("AGENT");
 
-  // Redirect if already authenticated with ADMIN role
   useEffect(() => {
-    if (isAuthenticated && userRole === "ADMIN") {
-      router.push("/admin");
+    if (isAuthenticated && userRole === "AGENT") {
+      router.push("/agent");
     }
   }, [isAuthenticated, userRole, router]);
 
@@ -31,10 +31,10 @@ export default function AdminLoginPage() {
     setError("");
 
     try {
-      await login(email, password, "ADMIN");
-      toast.success("Welcome back, Administrator!");
+      await login(email, password, "AGENT");
+      toast.success("Welcome back, Agent!");
     } catch (error: any) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       setError(error.message || "Invalid credentials");
       toast.error(error.message || "Login failed");
     } finally {
@@ -63,7 +63,9 @@ export default function AdminLoginPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-700">Checking Authentication</h2>
+          <h2 className="text-xl font-semibold text-gray-700">
+            Checking Authentication
+          </h2>
           <p className="text-gray-500">Verifying your session...</p>
         </div>
       </div>
@@ -74,10 +76,9 @@ export default function AdminLoginPage() {
     <div className="flex justify-center w-full items-center h-screen bg-gray-100">
       <Card className="w-full max-w-lg px-6 py-8 bg-white rounded-lg shadow-md">
         <div className="flex justify-center mb-6">
-          {/* Replace with your actual logo */}
           <div className="relative w-40 h-20">
             <Image
-              src="/truck.svg" 
+              src="/truck.svg"
               alt="Company Logo"
               fill
               className="object-contain"
@@ -86,70 +87,48 @@ export default function AdminLoginPage() {
           </div>
         </div>
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-gray-800 mb-2 text-center">
-            Admin Portal
+          <CardTitle className="text-3xl font-bold text-gray-800 mb-6 text-center">
+            Agent Login
           </CardTitle>
-          <p className="text-center text-gray-500">Sign in to your dashboard</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <p className="text-red-500 text-center text-sm">{error}</p>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="admin@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="py-2 px-3"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="py-2 px-3"
-              />
-            </div>
-            <Button type="submit" className="w-full mt-6" disabled={loading}>
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Authenticating...
-                </>
-              ) : (
-                "Login"
-              )}
+            <Label>Email</Label>
+            <Input
+              type="email"
+              placeholder="Enter email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+
+            <Label>Password</Label>
+            <Input
+              type="password"
+              placeholder="Enter password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Logging in..." : "Login"}
             </Button>
           </form>
+
+          {/* Link to agent application form */}
+          <p className="text-center text-sm text-gray-600 mt-4">
+            Don't have an agent account?{" "}
+            <Link
+              href="/agent-auth/registration"
+              className="text-blue-600 font-semibold hover:underline"
+            >
+              Apply to be an Agent
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>

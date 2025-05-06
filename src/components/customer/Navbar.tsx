@@ -1,6 +1,5 @@
 // /src/components/customer/Navbar.tsx
 "use client";
-import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import {
@@ -9,9 +8,44 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
-  const { user, logout, isAuthenticated } = useAuth();
+  const router = useRouter();
+  const [user, setUser] = useState<{ name: string } | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setIsAuthenticated(false);
+        return;
+      }
+
+      try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        setUser({ name: payload.name });
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error("Error parsing token:", error);
+        setIsAuthenticated(false);
+      }
+    };
+
+    checkAuth();
+    window.addEventListener("storage", checkAuth);
+    return () => window.removeEventListener("storage", checkAuth);
+  }, []);
+
+  const logout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("refresh_token");
+    setIsAuthenticated(false);
+    setUser(null);
+    router.push("/customer/auth");
+  };
 
   return (
     <nav className="w-full bg-white shadow-sm">

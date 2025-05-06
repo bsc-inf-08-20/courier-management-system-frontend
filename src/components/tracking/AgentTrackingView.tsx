@@ -9,7 +9,7 @@ import {
 } from "@react-google-maps/api";
 import { toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
-import { useAgentAuth } from "@/hooks/agentAuth";
+import { useAuth } from "@/hooks/agentAuth";
 
 interface Packet {
   id: number;
@@ -85,7 +85,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
   agentId,
   mode,
 }) => {
-  const { decodedToken } = useAgentAuth("AGENT");
+  const { decodedToken } = useAuth("AGENT");
 
   const [agentLocation, setAgentLocation] = useState<{
     lat: number;
@@ -283,26 +283,44 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       selectedPacket[coordinateField]
     ) {
       const directionsService = new window.google.maps.DirectionsService();
+      interface TravelInfo {
+        distance: string;
+        duration: string;
+      }
+
+      interface DirectionsLeg {
+        distance?: { text: string };
+        duration?: { text: string };
+      }
+
+      interface DirectionsRoute {
+        legs?: DirectionsLeg[];
+      }
+
+      interface DirectionsResult {
+        routes?: DirectionsRoute[];
+      }
+
       directionsService.route(
         {
           origin: agentLocation,
           destination: selectedPacket[coordinateField]!,
           travelMode: window.google.maps.TravelMode.DRIVING,
         },
-        (result, status) => {
+        (result: DirectionsResult | null, status: google.maps.DirectionsStatus) => {
           if (status === "OK" && result?.routes?.[0]?.legs?.[0]) {
-            setDirections(result);
-            setTravelInfo({
-              distance: result.routes[0].legs[0].distance?.text || "N/A",
-              duration: result.routes[0].legs[0].duration?.text || "N/A",
-            });
+        setDirections(result as google.maps.DirectionsResult);
+        setTravelInfo({
+          distance: result.routes[0].legs[0].distance?.text || "N/A",
+          duration: result.routes[0].legs[0].duration?.text || "N/A",
+        });
           } else {
-            console.warn(
-              "[AgentTrackingView] Directions request failed:",
-              status
-            );
-            setDirections(null);
-            setTravelInfo({ distance: "N/A", duration: "N/A" });
+        console.warn(
+          "[AgentTrackingView] Directions request failed:",
+          status
+        );
+        setDirections(null);
+        setTravelInfo({ distance: "N/A", duration: "N/A" });
           }
         }
       );

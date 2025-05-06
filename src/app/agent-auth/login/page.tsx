@@ -7,11 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-<<<<<<< HEAD:src/app/agent_auth/login/page.tsx
-import { toast } from "sonner";
-=======
 import {toast} from "sonner";
->>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent-auth/login/page.tsx
 
 export default function AgentLoginPage() {
   const [email, setEmail] = useState("");
@@ -21,23 +17,6 @@ export default function AgentLoginPage() {
   const router = useRouter();
 
   // Redirect if already logged in
-<<<<<<< HEAD:src/app/agent_auth/login/page.tsx
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const payload = JSON.parse(atob(token.split(".")[1]));
-        if (payload.exp * 1000 > Date.now() && payload.role === "AGENT") {
-          router.push("/agent");
-        }
-      } catch (error) {
-        console.log(error);
-        localStorage.removeItem("token");
-        localStorage.removeItem("refresh_token");
-      }
-    }
-  }, [router]);
-=======
     useEffect(() => {
       const token = localStorage.getItem("token");
       if (token) {
@@ -52,7 +31,6 @@ export default function AgentLoginPage() {
         }
       }
     }, [router]);
->>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent-auth/login/page.tsx
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,24 +59,15 @@ export default function AgentLoginPage() {
       }
 
       toast.success("Logged in successfully");
-<<<<<<< HEAD:src/app/agent_auth/login/page.tsx
-      router.push("/agent_components");
-=======
       router.push("/agent");
->>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent-auth/login/page.tsx
     } catch (err) {
-      console.log(err);
       setLoading(false);
       setError("Something went wrong, please try again.");
     }
   };
 
   //     // Decode token to check role
-<<<<<<< HEAD:src/app/agent_auth/login/page.tsx
-  //     const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-=======
   //     const payload = JSON.parse(atob(data.access_token.split(".")[1])); 
->>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent-auth/login/page.tsx
   //     if (payload.role !== "AGENT") {
   //       setError("Unauthorized access");
   //       localStorage.removeItem("token");
@@ -117,9 +86,7 @@ export default function AgentLoginPage() {
     <div className="flex justify-center w-full items-center h-screen bg-gray-100">
       <Card className="w-full max-w-lg px-6 py-8 bg-white rounded-lg shadow-md">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold text-gray-800 mb-6 text-center">
-            Agent Login
-          </CardTitle>
+          <CardTitle className="text-3xl font-bold text-gray-800 mb-6 text-center">Agent Login</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -151,16 +118,8 @@ export default function AgentLoginPage() {
 
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
-<<<<<<< HEAD:src/app/agent_auth/login/page.tsx
-            Do not have an agent account?{" "}
-            <Link
-              href="/agent_auth/registration"
-              className="text-blue-600 font-semibold hover:underline"
-            >
-=======
             Don't have an agent account?{" "}
             <Link href="/agent-auth/registration" className="text-blue-600 font-semibold hover:underline">
->>>>>>> 2ae188e00d49deb675fb4cad8b00207d8ce21e7b:src/app/agent-auth/login/page.tsx
               Apply to be an Agent
             </Link>
           </p>

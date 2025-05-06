@@ -96,9 +96,9 @@ const ProfilePage = () => {
          className="bg-blue-600 hover:bg-blue-700 text-white"
           // onClick={() => {
           //   fetch("/api/auth/logout", { method: "POST" });
-          //   router.push("agent_auth/login");
+          //   router.push("agent-auth/login");
           // }}
-          onClick={() => router.push("/agent_auth/login")}
+          onClick={() => router.push("/login/agent")}
         >
           Logout
         </Button>

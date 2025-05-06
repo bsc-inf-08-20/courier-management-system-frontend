@@ -1,21 +1,26 @@
 "use client";
+
 import AgentTrackingView from "@/components/tracking/AgentTrackingView";
-import { useAgentAuth } from "@/hooks/agentAuth";
-import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
 
 export default function AgentTrackingPage() {
-  const { decodedToken } = useAgentAuth("AGENT");
-  const agentId = decodedToken?.user_id;
+  const { decodedToken, isLoading } = useAuth("AGENT");
   const [tab, setTab] = useState<"collect" | "deliver">("collect");
 
-  if (!agentId) {
+  useEffect(() => {
+    if (decodedToken) {
+      console.log("Decoded Token:", decodedToken);
+      console.log("Agent ID:", decodedToken.user_id);
+    }
+  }, [decodedToken]);
+
+  if (isLoading || !decodedToken) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="inline-block relative w-20 h-20">
-            {/* Animated spinner */}
             <div className="absolute inset-0 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-            {/* Truck icon in center of spinner */}
             <svg
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-8 h-8 text-blue-600"
               fill="none"
@@ -37,8 +42,21 @@ export default function AgentTrackingPage() {
               />
             </svg>
           </div>
-          <h2 className="text-xl font-semibold text-gray-700">Loading Agent Dashboard</h2>
+          <h2 className="text-xl font-semibold text-gray-700">
+            Loading Agent Dashboard
+          </h2>
           <p className="text-gray-500">Preparing your tracking interface...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const agentId = decodedToken?.user_id;
+  if (!agentId) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>Error: Unable to retrieve agent information</p>
         </div>
       </div>
     );

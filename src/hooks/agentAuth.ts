@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export function useAgentAuth(requiredRole = "AGENT") {
+export function useAuth(requiredRole = "AGENT") {
   const router = useRouter();
   const [decodedToken, setDecodedToken] = useState<any>(null);
   let isRefreshing = false;
@@ -10,7 +10,7 @@ export function useAgentAuth(requiredRole = "AGENT") {
     const checkAuth = async () => {
       const token = localStorage.getItem("token");
       if (!token) {
-        router.push("/agent_auth/login");
+        router.push("/agent-auth/login");
         return false;
       }
 
@@ -26,7 +26,7 @@ export function useAgentAuth(requiredRole = "AGENT") {
             if (!refreshed) {
               localStorage.removeItem("token");
               localStorage.removeItem("refresh_token");
-              router.push("/agent_auth/login");
+              router.push("/agent-auth/login");
               return false;
             }
           }
@@ -41,7 +41,7 @@ export function useAgentAuth(requiredRole = "AGENT") {
         console.error("Error checking auth:", error);
         localStorage.removeItem("token");
         localStorage.removeItem("refresh_token");
-        router.push("/agent_auth/login");
+        router.push("/agent-auth/login");
         return false;
       }
     };

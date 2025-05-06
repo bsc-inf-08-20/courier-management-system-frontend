@@ -187,7 +187,7 @@ const AgentFinalRegistration = () => {
               <div className="flex justify-between mt-4">
                 <button
                   type="button"
-                  onClick={() => router.push("/agent_auth/registration")}
+                  onClick={() => router.push("/agent-auth/registration")}
                   className="flex items-center py-2 px-6 rounded-md bg-blue-500 hover:bg-blue-600 text-white"
                 >
                   &larr; Previous
