@@ -14,7 +14,7 @@ export default function CustomerDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       <h1 className="text-2xl font-bold">Welcome to Your Dashboard</h1>
       {/* Add your dashboard content here */}
     </div>
