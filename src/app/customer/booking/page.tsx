@@ -154,7 +154,7 @@ function CustomerBooking() {
           origin_coordinates: getCityCoordinates(data.city),
         }));
       } catch (error) {
-        console.error("Error fetching user data:", error);
+        console.error("fetching user data Error:", error);
         toast.error("Failed to load user data");
       }
     };
