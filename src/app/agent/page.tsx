@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -10,16 +9,10 @@ interface Pickup {
   date: string;
   time: string;
   customerName: string;
-  status: 'Complete' | 'Pending';
+  status: 'Complete' | 'Pending' | 'DeliveredToCustomer';
 }
 
-interface Message {
-  id: string;
-  content: string;
-  timestamp: string;
-}
-
-// Fetch data on the server-side (could be from an API route or direct server-side fetch)
+// Fetch data from the API
 async function fetchData<T>(endpoint: string): Promise<T[]> {
   try {
     const response = await fetch(endpoint);
@@ -31,23 +24,19 @@ async function fetchData<T>(endpoint: string): Promise<T[]> {
   }
 }
 
-// The main dashboard component
 export default function AgentDashboard() {
   const [searchQuery] = useState('');
   const [pickups, setPickups] = useState<Pickup[]>([]);
-  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
-    // Fetching the data after the component mounts (client-side)
     const loadPickups = async () => setPickups(await fetchData<Pickup>('/api/pickups'));
-    const loadMessages = async () => setMessages(await fetchData<Message>('/api/messages'));
-
     loadPickups();
-    loadMessages();
   }, []);
 
   const filteredData = pickups.filter((item) => item.id.includes(searchQuery));
-  
+  const completedPickups = pickups.filter((p) => p.status === 'Complete');
+  const deliveredPickups = pickups.filter((p) => p.status === 'DeliveredToCustomer');
+
   return (
     <div className="p-6 space-y-6">
       {/* Overview Cards */}
@@ -61,20 +50,20 @@ export default function AgentDashboard() {
           </Card>
           <Card className="bg-white-100">
             <CardContent className="p-4 text-lg font-medium">
-              Customers Served: {pickups.filter((p) => p.status === 'Complete').length}
+              Customers Served: {completedPickups.length}
             </CardContent>
           </Card>
-          <Card className="bg-whte-100">
+          <Card className="bg-white-100">
             <CardContent className="p-4 text-lg font-medium">
-              Messages: {messages.length}
+              Parcels Delivered: {deliveredPickups.length}
             </CardContent>
           </Card>
         </div>
       </div>
 
-      {/* Pickups Table */}
+      {/* Pickups & Deliveries Table */}
       <div className="p-4 border rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Recent Pickups (Last 24 Hours)</h2>
+        <h2 className="text-xl font-semibold mb-4">Recent Pickups & Deliveries (Last 24 Hours)</h2>
         <Table>
           <TableHeader>
             <TableRow>
@@ -95,7 +84,15 @@ export default function AgentDashboard() {
                   <TableCell>{item.time}</TableCell>
                   <TableCell>{item.id}</TableCell>
                   <TableCell>{item.customerName}</TableCell>
-                  <TableCell className={item.status === 'Complete' ? 'text-green-600' : 'text-yellow-600'}>
+                  <TableCell
+                    className={
+                      item.status === 'Complete'
+                        ? 'text-green-600'
+                        : item.status === 'DeliveredToCustomer'
+                        ? 'text-blue-600'
+                        : 'text-yellow-600'
+                    }
+                  >
                     {item.status}
                   </TableCell>
                 </TableRow>

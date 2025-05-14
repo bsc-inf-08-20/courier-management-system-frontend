@@ -1,9 +1,13 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
+
+import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { MapComponent } from "@/components/MapComponent";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/customer/Navbar";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -11,83 +15,177 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useState, useEffect } from "react";
-import { Package, Truck } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import Link from "next/link";
-import { MapComponent } from "@/components/MapComponent";
+import { Separator } from "@/components/ui/separator";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { toast } from "sonner";
+import { Package, MapPin, Clock, User } from "lucide-react";
+import { AuthProvider } from "@/context/AuthContext";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { Progress } from "@/components/ui/progress";
 
-export default function Booking() {
-  const { isAuthenticated } = useAuth();
+const HUB_LOCATIONS = [
+  { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
+  { name: "Lilongwe", coordinates: { lat: -13.9626, lng: 33.7741 } },
+  { name: "Blantyre", coordinates: { lat: -15.7861, lng: 35.0058 } },
+];
+
+const TIME_WINDOWS = [
+  { label: "8:30 AM - 12:00 PM", value: ["08:30:00", "12:00:00"] },
+  { label: "1:30 PM - 4:30 PM", value: ["13:30:00", "16:30:00"] },
+];
+
+type FormSection = {
+  isComplete: boolean;
+  label: string;
+};
+
+const validateSection = (section: string, formData: any): boolean => {
+  switch (section) {
+    case "package":
+      return !!(
+        formData.packet_description &&
+        formData.packet_weight &&
+        formData.packet_category
+      );
+    case "delivery":
+      return !!formData.delivery_type;
+    case "receiver":
+      return !!(
+        formData.receiver.name &&
+        formData.receiver.email &&
+        formData.receiver.phone_number
+      );
+    case "locations":
+      return !!(
+        formData.destination_hub &&
+        (formData.delivery_type === "pickup" ||
+          (formData.destination_address &&
+            formData.destination_coordinates.lat !== 0 &&
+            formData.destination_coordinates.lng !== 0))
+      );
+    case "pickup":
+      return !!(
+        formData.pickup_address?.trim() && // Check if address exists and is not empty
+        formData.origin_coordinates &&
+        formData.origin_coordinates.lat !== 0 &&
+        formData.origin_coordinates.lng !== 0
+      );
+    case "time":
+      return true; // Handled separately with selectedDate and selectedTimeWindow
+    default:
+      return false;
+  }
+};
+
+export default function BookingPageWrapper() {
+  return <CustomerBooking />;
+}
+
+function CustomerBooking() {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [userData, setUserData] = useState<any>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>("");
+
   const [formData, setFormData] = useState({
-    packageType: "",
-    weight: "",
+    packet_description: "",
+    packet_weight: "",
+    packet_category: "",
     instructions: "",
-    packageDescription: "",
-    pickupLocation: "",
-    pickupCoordinates: { lat: 0, lng: 0 },
-    deliveryLocation: "",
-    deliveryCoordinates: { lat: 0, lng: 0 },
-    pickupTime: "",
+    delivery_type: "pickup",
+    sender: {
+      name: "",
+      email: "",
+      phone_number: "",
+    },
+    pickup_address: "",
+    origin_coordinates: { lat: 0, lng: 0 },
+    receiver: {
+      name: "",
+      email: "",
+      phone_number: "",
+    },
+    destination_hub: "",
+    destination_address: "",
+    destination_coordinates: { lat: 0, lng: 0 },
   });
-  const [errors, setErrors] = useState({});
-  const [isSubmitted, setIsSubmitted] = useState(false);
-  const [apiError, setApiError] = useState(null);
-  const [bookingId, setBookingId] = useState(null);
-  const [showPickupMap, setShowPickupMap] = useState(false);
-  const [showDeliveryMap, setShowDeliveryMap] = useState(false);
 
+  const [sections, setSections] = useState<{ [key: string]: FormSection }>({
+    package: { isComplete: false, label: "Package Details" },
+    delivery: { isComplete: false, label: "Delivery Type" },
+    receiver: { isComplete: false, label: "Receiver Details" },
+    locations: { isComplete: false, label: "Locations" },
+    pickup: { isComplete: false, label: "Pickup Location" },
+    time: { isComplete: false, label: "Time Window" },
+  });
+
+  // Fetch user data
   useEffect(() => {
-    if (!isAuthenticated) router.push("/customer/auth");
-  }, [isAuthenticated, router]);
+    const fetchUserData = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:3001/users/me-data", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-    setApiError(null);
+        if (!response.ok) throw new Error("Failed to fetch user data");
+
+        const data = await response.json();
+        setUserData(data);
+
+        // Pre-fill sender information
+        setFormData((prev) => ({
+          ...prev,
+          sender: {
+            name: data.name,
+            email: data.email,
+            phone_number: data.phone_number,
+          },
+          pickup_address: data.city,
+          origin_coordinates: getCityCoordinates(data.city),
+        }));
+      } catch (error) {
+        console.error("fetching user data Error:", error);
+        toast.error("Failed to load user data");
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  const getCityCoordinates = (cityName: string) => {
+    const hub = HUB_LOCATIONS.find((h) => h.name === cityName);
+    return hub ? hub.coordinates : { lat: -13.9626, lng: 33.7741 };
   };
 
-  const validateForm = () => {
-    const newErrors = {};
-    if (!formData.packageType) newErrors.packageType = "Package type is required";
-    if (!formData.pickupLocation) newErrors.pickupLocation = "Pick-up location is required";
-    if (!formData.deliveryLocation) newErrors.deliveryLocation = "Delivery location is required";
-    if (!formData.packageDescription) newErrors.packageDescription = "Package description is required";
-    if (!formData.pickupTime) newErrors.pickupTime = "Pick-up time is required";
-    if (formData.pickupCoordinates.lat === 0 || formData.pickupCoordinates.lng === 0)
-      newErrors.pickupCoordinates = "Please set pick-up location on map";
-    if (formData.deliveryCoordinates.lat === 0 || formData.deliveryCoordinates.lng === 0)
-      newErrors.deliveryCoordinates = "Please set delivery location on map";
-    return newErrors;
-  };
-
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const validationErrors = validateForm();
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
+    if (!selectedDate || !selectedTimeWindow) {
+      toast.error("Please select pickup date and time window");
       return;
     }
 
-    setApiError(null);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      setApiError("You must be logged in to book a pickup.");
-      return;
-    }
+    setLoading(true);
+    const [startTime, endTime] =
+      TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)?.value || [];
 
-    const pickupRequestData = {
-      package_type: formData.packageType,
-      weight: parseFloat(formData.weight) || 0,
-      special_instructions: formData.instructions,
-      package_description: formData.packageDescription,
-      origin_address: formData.pickupLocation,
-      origin_coordinates: formData.pickupCoordinates,
-      destination_address: formData.deliveryLocation,
-      destination_coordinates: formData.deliveryCoordinates,
-      pickup_time: formData.pickupTime,
+    const dateStr = format(selectedDate, "yyyy-MM-dd");
+    const requestData = {
+      ...formData,
+      packet_weight: parseFloat(formData.packet_weight),
+      pickup_window: {
+        start: `${dateStr}T${startTime}`,
+        end: `${dateStr}T${endTime}`,
+      },
     };
 
     try {
@@ -95,220 +193,443 @@ export default function Booking() {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify(pickupRequestData),
+        body: JSON.stringify(requestData),
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to request pickup");
+        throw new Error("Failed to create booking");
       }
 
-      const result = await response.json();
-      setBookingId(result.id || "12345");
-      setIsSubmitted(true);
-    } catch (err) {
-      setApiError(err instanceof Error ? err.message : "An error occurred while booking.");
+      toast.success("Booking created successfully!");
+      router.push("/customer/tracking");
+    } catch (error) {
+      console.error("Booking error:", error);
+      toast.error("Failed to create booking");
+    } finally {
+      setLoading(false);
     }
   };
 
-  if (!isAuthenticated) return null;
+  useEffect(() => {
+    const updatedSections = Object.keys(sections).reduce((acc, section) => {
+      const isComplete = validateSection(section, formData);
+      console.log(`Section ${section} validation:`, {
+        isComplete,
+        data:
+          section === "pickup"
+            ? {
+                address: formData.pickup_address,
+                coordinates: formData.origin_coordinates,
+              }
+            : null,
+      });
 
-  if (isSubmitted) {
-    return (
-      <div className="min-h-screen min-w-full bg-gray-50 flex flex-col">
-        <Navbar />
-        <main className="flex-grow max-w-2xl mx-auto px-4 py-8 text-center">
-          <h2 className="text-3xl font-bold text-green-600 mb-6">
-            Booking Confirmed!
-          </h2>
-          <p>Your booking ID is #{bookingId}. You’ll receive a confirmation soon.</p>
-          <Link href="/customer/tracking">
-            <Button className="mt-4">Track Your Package</Button>
-          </Link>
-        </main>
-      </div>
-    );
-  }
+      return {
+        ...acc,
+        [section]: {
+          ...sections[section],
+          isComplete,
+        },
+      };
+    }, sections);
+
+    // Update time section separately
+    updatedSections.time.isComplete = !!(selectedDate && selectedTimeWindow);
+
+    setSections(updatedSections);
+  }, [formData, selectedDate, selectedTimeWindow]);
+
+  const progress = useMemo(() => {
+    const completedSections = Object.values(sections).filter(
+      (s) => s.isComplete
+    ).length;
+    return (completedSections / Object.keys(sections).length) * 100;
+  }, [sections]);
+
+  const isFormValid = useMemo(() => {
+    return Object.values(sections).every((section) => section.isComplete);
+  }, [sections]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
-      <main className="flex-grow max-w-2xl mx-auto px-4 py-8">
-        <h2 className="text-3xl font-bold text-gray-800 mb-6">
-          Book a Courier
-        </h2>
-        {apiError && (
-          <Alert variant="destructive" className="mb-6">
-            <AlertDescription>{apiError}</AlertDescription>
-          </Alert>
-        )}
-        <div className="space-y-6">
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center">
-              <Package className="h-5 w-5 mr-2 text-blue-500" /> Package Details
-            </h3>
-            <Select
-              onValueChange={(value) => handleChange("packageType", value)}
-              value={formData.packageType}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Package Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="document">Document</SelectItem>
-                <SelectItem value="parcel">Parcel</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.packageType && (
-              <Alert variant="destructive">
-                <AlertDescription>{errors.packageType}</AlertDescription>
-              </Alert>
-            )}
-            <Input
-              placeholder="Weight (kg)"
-              type="number"
-              value={formData.weight}
-              onChange={(e) => handleChange("weight", e.target.value)}
-            />
-            <Textarea
-              placeholder="Package Description"
-              value={formData.packageDescription}
-              onChange={(e) => handleChange("packageDescription", e.target.value)}
-            />
-            {errors.packageDescription && (
-              <Alert variant="destructive">
-                <AlertDescription>{errors.packageDescription}</AlertDescription>
-              </Alert>
-            )}
-            <Textarea
-              placeholder="Special Instructions (e.g., Fragile)"
-              value={formData.instructions}
-              onChange={(e) => handleChange("instructions", e.target.value)}
-            />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-6">
+      <Card className="max-w-4xl mx-auto shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+          <CardTitle className="text-2xl">Book a Pickup</CardTitle>
+          <div className="mt-4">
+            <Progress value={progress} className="h-2" />
+            <p className="text-sm mt-2">{Math.round(progress)}% completed</p>
           </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Locations</h3>
-            <div>
-              <Input
-                placeholder="Pick-Up Location (e.g., Area 47, near Shoprite)"
-                value={formData.pickupLocation}
-                onChange={(e) => handleChange("pickupLocation", e.target.value)}
-              />
-              <Button
-                type="button"
-                onClick={() => setShowPickupMap(!showPickupMap)}
-                className="mt-2"
-              >
-                {showPickupMap ? "Hide Map" : "Set Pick-Up Location on Map"}
-              </Button>
-              {showPickupMap && (
-                <MapComponent
-                  initialCenter={{ lat: -13.9626, lng: 33.7741 }}
-                  onLocationSelect={(coords) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      pickupCoordinates: coords,
-                    }))
-                  }
-                  selectedCoordinates={formData.pickupCoordinates}
-                />
-              )}
-              {formData.pickupCoordinates.lat !== 0 && formData.pickupCoordinates.lng !== 0 && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Selected Pick-Up: Lat {formData.pickupCoordinates.lat.toFixed(4)}, Lng {formData.pickupCoordinates.lng.toFixed(4)}
-                </p>
-              )}
-              {errors.pickupCoordinates && (
-                <Alert variant="destructive" className="mt-2">
-                  <AlertDescription>{errors.pickupCoordinates}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-            <div>
-              <Input
-                placeholder="Delivery Location (e.g., Mzuzu Central Market)"
-                value={formData.deliveryLocation}
-                onChange={(e) => handleChange("deliveryLocation", e.target.value)}
-              />
-              <Button
-                type="button"
-                onClick={() => setShowDeliveryMap(!showDeliveryMap)}
-                className="mt-2"
-              >
-                {showDeliveryMap ? "Hide Map" : "Set Delivery Location on Map"}
-              </Button>
-              {showDeliveryMap && (
-                <MapComponent
-                  initialCenter={{ lat: -13.9626, lng: 33.7741 }}
-                  onLocationSelect={(coords) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      deliveryCoordinates: coords,
-                    }))
-                  }
-                  selectedCoordinates={formData.deliveryCoordinates}
-                />
-              )}
-              {formData.deliveryCoordinates.lat !== 0 && formData.deliveryCoordinates.lng !== 0 && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Selected Delivery: Lat {formData.deliveryCoordinates.lat.toFixed(4)}, Lng {formData.deliveryCoordinates.lng.toFixed(4)}
-                </p>
-              )}
-              {errors.deliveryCoordinates && (
-                <Alert variant="destructive" className="mt-2">
-                  <AlertDescription>{errors.deliveryCoordinates}</AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </div>
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold flex items-center">
-              <Truck className="h-5 w-5 mr-2 text-blue-500" /> Pick-Up Option
-            </h3>
-            <p>Agent Pick-Up</p>
-            <Select
-              onValueChange={(value) => handleChange("pickupTime", value)}
-              value={formData.pickupTime}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select Pick-Up Time" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="8am-12pm">8 AM - 12 PM</SelectItem>
-                <SelectItem value="12pm-4pm">12 PM - 4 PM</SelectItem>
-                <SelectItem value="4pm-8pm">4 PM - 8 PM</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.pickupTime && (
-              <Alert variant="destructive">
-                <AlertDescription>{errors.pickupTime}</AlertDescription>
-              </Alert>
-            )}
-          </div>
-          <div className="text-right">
+        </CardHeader>
+        <CardContent className="p-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <Accordion type="single" collapsible defaultValue="package">
+              {/* Package Details Section */}
+              <AccordionItem value="package">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Package className="h-5 w-5 text-blue-500" />
+                    <span>Package Details</span>
+                  </div>
+                  {sections.package.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Package className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Package Details</h3>
+                    </div>
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Package Category</Label>
+                        <Select
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              packet_category: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="electronics">
+                              Electronics
+                            </SelectItem>
+                            <SelectItem value="clothing">Clothing</SelectItem>
+                            <SelectItem value="documents">Documents</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label>Weight (kg)</Label>
+                        <Input
+                          type="number"
+                          value={formData.packet_weight}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              packet_weight: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Description</Label>
+                        <Input
+                          value={formData.packet_description}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              packet_description: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <Label>Special Instructions</Label>
+                        <Input
+                          value={formData.instructions}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              instructions: e.target.value,
+                            }))
+                          }
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Pickup Location Section */}
+              <AccordionItem value="pickup">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-500" />
+                    <span>Pickup Location</span>
+                  </div>
+                  {sections.pickup.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <MapComponent
+                      initialCenter={{ lat: -13.9626, lng: 33.7741 }}
+                      onLocationSelect={(coords) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          origin_coordinates: coords,
+                        }))
+                      }
+                      selectedCoordinates={formData.origin_coordinates}
+                      label="Select pickup location"
+                      onAddressChange={(address) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          pickup_address: address,
+                        }))
+                      }
+                      addressInputValue={formData.pickup_address}
+                    />
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Delivery Type Section */}
+              <AccordionItem value="delivery">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-500" />
+                    <span>Delivery Type</span>
+                  </div>
+                  {sections.delivery.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Delivery Type</h3>
+                    </div>
+                    <Separator />
+                    <Select
+                      value={formData.delivery_type}
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          delivery_type: value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select delivery type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pickup">Hub Pickup</SelectItem>
+                        <SelectItem value="delivery">Home Delivery</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Receiver Information */}
+              <AccordionItem value="receiver">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <User className="h-5 w-5 text-blue-500" />
+                    <span>Receiver Details</span>
+                  </div>
+                  {sections.receiver.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <User className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">
+                        Receiver Details
+                      </h3>
+                    </div>
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        placeholder="Name"
+                        value={formData.receiver.name}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            receiver: {
+                              ...prev.receiver,
+                              name: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={formData.receiver.email}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            receiver: {
+                              ...prev.receiver,
+                              email: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                      <Input
+                        placeholder="Phone Number"
+                        value={formData.receiver.phone_number}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            receiver: {
+                              ...prev.receiver,
+                              phone_number: e.target.value,
+                            },
+                          }))
+                        }
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Location Section */}
+              <AccordionItem value="locations">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5 text-blue-500" />
+                    <span>Locations</span>
+                  </div>
+                  {sections.locations.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Locations</h3>
+                    </div>
+                    <Separator />
+
+                    {/* Always show destination hub selection */}
+                    <div>
+                      <Label>Destination Hub</Label>
+                      <Select
+                        value={formData.destination_hub}
+                        onValueChange={(value) => {
+                          const coords = getCityCoordinates(value);
+                          setFormData((prev) => ({
+                            ...prev,
+                            destination_hub: value,
+                            destination_address: value,
+                            destination_coordinates: coords,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select destination hub" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUB_LOCATIONS.map((hub) => (
+                            <SelectItem key={hub.name} value={hub.name}>
+                              {hub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Show additional delivery location for home delivery */}
+                    {formData.delivery_type === "delivery" && (
+                      <div className="space-y-4">
+                        <MapComponent
+                          initialCenter={formData.destination_coordinates}
+                          onLocationSelect={(coords) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              destination_coordinates: coords,
+                            }))
+                          }
+                          selectedCoordinates={formData.destination_coordinates}
+                          label="Select delivery location"
+                          onAddressChange={(address) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              destination_address: address,
+                            }))
+                          }
+                          addressInputValue={formData.destination_address}
+                        />
+                      </div>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+
+              {/* Pickup Window Section */}
+              <AccordionItem value="time">
+                <AccordionTrigger className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-5 w-5 text-blue-500" />
+                    <span>Pickup Window</span>
+                  </div>
+                  {sections.time.isComplete && (
+                    <span className="text-green-500 text-sm">✓ Complete</span>
+                  )}
+                </AccordionTrigger>
+                <AccordionContent>
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Pickup Window</h3>
+                    </div>
+                    <Separator />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <Label>Select Date</Label>
+                        <Calendar
+                          mode="single"
+                          selected={selectedDate}
+                          onSelect={(date: Date | undefined) =>
+                            setSelectedDate(date || undefined)
+                          }
+                          className="rounded-md border"
+                          disabled={(date) =>
+                            date < new Date() || date > new Date(2025, 11, 31)
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label>Select Time Window</Label>
+                        <Select
+                          value={selectedTimeWindow}
+                          onValueChange={setSelectedTimeWindow}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select time window" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {TIME_WINDOWS.map((tw) => (
+                              <SelectItem key={tw.label} value={tw.label}>
+                                {tw.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
             <Button
-              onClick={handleSubmit}
-              disabled={
-                !formData.packageType ||
-                !formData.pickupLocation ||
-                !formData.deliveryLocation ||
-                !formData.pickupTime ||
-                !formData.packageDescription ||
-                formData.pickupCoordinates.lat === 0 ||
-                formData.pickupCoordinates.lng === 0 ||
-                formData.deliveryCoordinates.lat === 0 ||
-                formData.deliveryCoordinates.lng === 0
-              }
-              className="bg-blue-600 hover:bg-blue-700"
+              type="submit"
+              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+              disabled={loading || !isFormValid}
             >
-              Confirm Booking
+              {loading ? "Creating Booking..." : "Confirm Booking"}
             </Button>
-          </div>
-        </div>
-      </main>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   );
 }

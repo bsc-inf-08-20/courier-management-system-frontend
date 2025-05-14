@@ -29,14 +29,14 @@ const navItems = [
     title: "Dashboard",
   },
   {
-    href: "/customer/book-pickup",
+    href: "/customer/booking",
     icon: BookOpen,
     title: "Book Pickup",
   },
   {
-    href: "/customer/my-packets",
+    href: "/customer/tracking",
     icon: Package,
-    title: "My Packets",
+    title: "Truck Packets",
   },
   {
     href: "/customer/history",
@@ -87,7 +87,7 @@ export default function CustomerLayout({
 
   return (
     <AuthGuard requiredRole="USER">
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen w-full bg-gray-50">
         {/* Header */}
         <header className="bg-white shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

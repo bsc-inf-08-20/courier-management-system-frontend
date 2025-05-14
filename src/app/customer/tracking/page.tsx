@@ -1,7 +1,5 @@
 "use client";
-import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/customer/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -20,8 +18,6 @@ interface TrackingData {
 }
 
 export default function Tracking() {
-  const { isAuthenticated } = useAuth();
-  const router = useRouter();
   const [trackingId, setTrackingId] = useState("");
   const [trackingResult, setTrackingResult] = useState<TrackingData | null>(null);
   const [error, setError] = useState("");
@@ -38,10 +34,6 @@ export default function Tracking() {
     ],
   };
 
-  useEffect(() => {
-    if (!isAuthenticated) router.push("/customer/auth");
-  }, [isAuthenticated, router]);
-
   const handleTrack = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -57,11 +49,9 @@ export default function Tracking() {
     }, 1000);
   };
 
-  if (!isAuthenticated) return null;
 
   return (
     <div className="min-h-screen w-full bg-gray-100 flex flex-col">
-      <Navbar />
       <main className="flex-grow max-w-2xl mx-auto px-6 py-8">
         <motion.h2
           initial={{ opacity: 0 }}
