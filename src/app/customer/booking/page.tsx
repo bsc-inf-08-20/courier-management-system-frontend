@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { MapComponent } from "@/components/MapComponent";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Package, MapPin, Clock, User } from "lucide-react";
-import { AuthProvider } from "@/context/AuthContext";
 import {
   Accordion,
   AccordionContent,
@@ -28,6 +26,11 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
+// import { calculateDeliveryFee } from "@/utils/paymentCalculator";
+import {
+  calculateDeliveryFee,
+  getFeeBreakdown,
+} from "@/utils/paymentCalculator";
 
 const HUB_LOCATIONS = [
   { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
@@ -45,7 +48,37 @@ type FormSection = {
   label: string;
 };
 
-const validateSection = (section: string, formData: any): boolean => {
+interface FormData {
+  packet_description: string;
+  packet_weight: string;
+  packet_category: string;
+  instructions: string;
+  delivery_type: string;
+  sender: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  pickup_address: string;
+  origin_coordinates: { lat: number; lng: number };
+  receiver: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  destination_hub: string;
+  destination_address: string;
+  destination_coordinates: { lat: number; lng: number };
+}
+
+interface UserData {
+  name: string;
+  email: string;
+  phone_number: string;
+  city: string;
+}
+
+const validateSection = (section: string, formData: FormData): boolean => {
   switch (section) {
     case "package":
       return !!(
@@ -90,11 +123,11 @@ export default function BookingPageWrapper() {
 function CustomerBooking() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [, setUserData] = useState<UserData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>("");
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     packet_description: "",
     packet_weight: "",
     packet_category: "",
@@ -139,7 +172,7 @@ function CustomerBooking() {
 
         if (!response.ok) throw new Error("Failed to fetch user data");
 
-        const data = await response.json();
+        const data: UserData = await response.json();
         setUserData(data);
 
         // Pre-fill sender information
@@ -174,72 +207,101 @@ function CustomerBooking() {
       return;
     }
 
-    setLoading(true);
-    const [startTime, endTime] =
-      TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)?.value || [];
+    const deliveryFee = calculateDeliveryFee(
+      formData.pickup_address,
+      formData.destination_hub,
+      formData.packet_category,
+      formData.delivery_type === "delivery",
+      parseFloat(formData.packet_weight)
+    );
 
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const requestData = {
-      ...formData,
-      packet_weight: parseFloat(formData.packet_weight),
-      pickup_window: {
-        start: `${dateStr}T${startTime}`,
-        end: `${dateStr}T${endTime}`,
-      },
-    };
+    const feeBreakdown = getFeeBreakdown(
+      formData.pickup_address,
+      formData.destination_hub,
+      formData.packet_category,
+      formData.delivery_type === "delivery",
+      parseFloat(formData.packet_weight)
+    );
 
     try {
-      const response = await fetch("http://localhost:3001/pickup/request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(requestData),
-      });
+      // Create booking first
+      const bookingResponse = await fetch(
+        "http://localhost:3001/pickup/request",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            ...formData,
+            packet_weight: parseFloat(formData.packet_weight),
+            pickup_window: {
+              start: `${format(selectedDate, "yyyy-MM-dd")}T${
+                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                  ?.value[0]
+              }`,
+              end: `${format(selectedDate, "yyyy-MM-dd")}T${
+                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                  ?.value[1]
+              }`,
+            },
+            delivery_fee: deliveryFee,
+          }),
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to create booking");
-      }
+      if (!bookingResponse.ok) throw new Error("Booking creation failed");
 
-      toast.success("Booking created successfully!");
-      router.push("/customer/tracking");
+      const bookingData = await bookingResponse.json();
+
+      // Redirect to payment page with all necessary data
+      router.push(
+        `/customer/payment?${new URLSearchParams({
+          booking_id: bookingData.id,
+          amount: deliveryFee.toString(),
+          email: formData.sender.email,
+          name: formData.sender.name,
+          origin: formData.pickup_address,
+          destination: formData.destination_hub,
+          category: formData.packet_category,
+          delivery_type: formData.delivery_type,
+          weight: formData.packet_weight,
+          ...Object.fromEntries(
+            Object.entries(feeBreakdown).map(([key, value]) => [
+              key,
+              value.toString(),
+            ])
+          ),
+        })}`
+      );
     } catch (error) {
       console.error("Booking error:", error);
       toast.error("Failed to create booking");
-    } finally {
-      setLoading(false);
     }
   };
 
+  // Fix the validation effect to prevent infinite loops
   useEffect(() => {
-    const updatedSections = Object.keys(sections).reduce((acc, section) => {
-      const isComplete = validateSection(section, formData);
-      console.log(`Section ${section} validation:`, {
-        isComplete,
-        data:
-          section === "pickup"
-            ? {
-                address: formData.pickup_address,
-                coordinates: formData.origin_coordinates,
-              }
-            : null,
-      });
+    // Create a new object instead of mutating the existing one
+    const updatedSections = {} as { [key: string]: FormSection };
 
-      return {
-        ...acc,
-        [section]: {
-          ...sections[section],
-          isComplete,
-        },
+    // Validate each section
+    Object.keys(sections).forEach((section) => {
+      updatedSections[section] = {
+        ...sections[section],
+        isComplete:
+          section === "time"
+            ? !!(selectedDate && selectedTimeWindow)
+            : validateSection(section, formData),
       };
-    }, sections);
+    });
 
-    // Update time section separately
-    updatedSections.time.isComplete = !!(selectedDate && selectedTimeWindow);
-
-    setSections(updatedSections);
-  }, [formData, selectedDate, selectedTimeWindow]);
+    // Only update state if there are actual changes
+    if (JSON.stringify(updatedSections) !== JSON.stringify(sections)) {
+      setSections(updatedSections);
+    }
+  }, [formData, selectedDate, selectedTimeWindow]); // Remove sections from dependencies
 
   const progress = useMemo(() => {
     const completedSections = Object.values(sections).filter(
@@ -371,7 +433,7 @@ function CustomerBooking() {
                         }))
                       }
                       selectedCoordinates={formData.origin_coordinates}
-                      label="Select pickup location"
+                      label="Select pickup location (City)"
                       onAddressChange={(address) =>
                         setFormData((prev) => ({
                           ...prev,

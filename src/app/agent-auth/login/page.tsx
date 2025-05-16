@@ -28,6 +28,7 @@ export default function AgentLoginPage() {
         } catch (error) {
           localStorage.removeItem("token");
           localStorage.removeItem("refresh_token");
+          console.error("Error parsing token:", error);
         }
       }
     }, [router]);
@@ -62,7 +63,7 @@ export default function AgentLoginPage() {
       router.push("/agent");
     } catch (err) {
       setLoading(false);
-      setError("Something went wrong, please try again.");
+      setError("Something went wrong, please try again." + err);
     }
   };
 
@@ -118,7 +119,7 @@ export default function AgentLoginPage() {
 
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
-            Don't have an agent account?{" "}
+            Don&apos;t have an agent account?{" "}
             <Link href="/agent-auth/registration" className="text-blue-600 font-semibold hover:underline">
               Apply to be an Agent
             </Link>

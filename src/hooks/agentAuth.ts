@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+
+interface DecodedToken {
+  exp: number;
+  role: string;
+  [key: string]: unknown;
+}
 
 export function useAuth(requiredRole = "AGENT") {
   const router = useRouter();
-  const [decodedToken, setDecodedToken] = useState<any>(null);
-  let isRefreshing = false;
+  const [decodedToken, setDecodedToken] = useState<DecodedToken | null>(null);
+  const isRefreshingRef = useRef(false);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -21,7 +27,7 @@ export function useAuth(requiredRole = "AGENT") {
         const hasValidRole = payload.role === requiredRole;
 
         if (isExpired || !hasValidRole) {
-          if (!isRefreshing) {
+          if (!isRefreshingRef.current) {
             const refreshed = await attemptRefresh();
             if (!refreshed) {
               localStorage.removeItem("token");
@@ -32,7 +38,7 @@ export function useAuth(requiredRole = "AGENT") {
           }
         }
 
-        if (payload.exp * 1000 - Date.now() < 300000 && !isRefreshing) {
+        if (payload.exp * 1000 - Date.now() < 300000 && !isRefreshingRef.current) {
           await attemptRefresh();
         }
 
@@ -47,8 +53,8 @@ export function useAuth(requiredRole = "AGENT") {
     };
 
     const attemptRefresh = async () => {
-      if (isRefreshing) return false;
-      isRefreshing = true;
+      if (isRefreshingRef.current) return false;
+      isRefreshingRef.current = true;
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
@@ -82,7 +88,7 @@ export function useAuth(requiredRole = "AGENT") {
         console.error("Token refresh failed:", error);
         return false;
       } finally {
-        isRefreshing = false;
+        isRefreshingRef.current = false;
       }
     };
 

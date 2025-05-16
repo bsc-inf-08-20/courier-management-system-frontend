@@ -16,8 +16,6 @@ import {
   NewspaperIcon,
   SettingsIcon,
   UserIcon,
-  TrainTrackIcon,
-  TruckIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,12 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import AuthGuard from "@/components/AuthGuard";
-import Dashboard from "./desiplaygraphs/page";
-import Tracking from "../admin/tracking/page";
-import { map } from "leaflet";
 
 export default function AgentLayout({
   children,
@@ -114,10 +108,7 @@ export default function AgentLayout({
   const pageTitle = currentPage ? currentPage.title : "Agent Dashboard"; // Fallback title
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    toast.success("Logged out successfully");
-    router.push("/login/agent");
+    logout();
   };
 
   return (

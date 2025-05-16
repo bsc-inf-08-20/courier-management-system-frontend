@@ -3,7 +3,7 @@
 import { useAuth } from "@/hooks/useAuth";
 
 export default function CustomerDashboard() {
-  const { isAuthenticated, userRole, isLoading } = useAuth("USER");
+  const { isLoading } = useAuth("USER");
 
   if (isLoading) {
     return (

@@ -46,7 +46,7 @@ const AgentPage = () => {
         alert(" Failed to send information. Please check your input and try again.");
       }
     } catch (error) {
-      alert(" Something went wrong. Please try again.");
+      alert(" Something went wrong. Please try again." + error);
     }
   };
 

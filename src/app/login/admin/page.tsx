@@ -10,6 +10,12 @@ import { toast } from "sonner";
 import Image from "next/image";
 import { useAuth } from "@/hooks/useAuth";
 
+// Add this interface at the top of the file
+interface LoginError {
+  message: string;
+  status?: number;
+}
+
 export default function AdminLoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,10 +39,12 @@ export default function AdminLoginPage() {
     try {
       await login(email, password, "ADMIN");
       toast.success("Welcome back, Administrator!");
-    } catch (error: any) {
-      console.error('Login error:', error);
-      setError(error.message || "Invalid credentials");
-      toast.error(error.message || "Login failed");
+    } catch (error: unknown) {
+      // Type guard to check if error is LoginError
+      const loginError = error as LoginError;
+      console.error('Login error:', loginError);
+      setError(loginError.message || "Invalid credentials");
+      toast.error(loginError.message || "Login failed");
     } finally {
       setLoading(false);
     }

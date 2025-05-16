@@ -7,15 +7,21 @@ import { toast } from "sonner";
 // Define allowed roles type
 export type UserRole = "ADMIN" | "AGENT" | "USER";
 
+// Define JWT payload type
+interface JwtPayload {
+  role: UserRole;
+  exp: number;
+  [key: string]: unknown; // For other possible properties
+}
+
 export function useAuth(requiredRole?: UserRole) {
   const router = useRouter();
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [decodedToken, setDecodedToken] = useState<any>(null);
+  const [decodedToken, setDecodedToken] = useState<JwtPayload | null>(null);
   const refreshTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  let isRefreshing = false;
 
   const getRoleLoginPath = (role?: string): string => {
     switch (role?.toUpperCase()) {
@@ -29,6 +35,22 @@ export function useAuth(requiredRole?: UserRole) {
         return "/login";
     }
   };
+
+  const redirectToDashboard = useCallback((role: string) => {
+    switch (role) {
+      case "ADMIN":
+        router.push("/admin");
+        break;
+      case "AGENT":
+        router.push("/agent");
+        break;
+      case "USER":
+        router.push("/customer");
+        break;
+      default:
+        router.push("/");
+    }
+  }, [router]);
 
   const login = useCallback(async (email: string, password: string, role?: UserRole) => {
     try {
@@ -84,30 +106,15 @@ export function useAuth(requiredRole?: UserRole) {
     } finally {
       setIsLoading(false);
     }
-  }, [router]);
-
-  const redirectToDashboard = (role: string) => {
-    switch (role) {
-      case "ADMIN":
-        router.push("/admin");
-        break;
-      case "AGENT":
-        router.push("/agent");
-        break;
-      case "USER":
-        router.push("/customer");
-        break;
-      default:
-        router.push("/");
-    }
-  };
+  }, [redirectToDashboard]);
 
   const logout = useCallback(() => {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
     setIsAuthenticated(false);
     setUserRole(null);
-    if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+    const timeout = refreshTimeoutRef.current;
+    if (timeout) clearTimeout(timeout);
     
     // Redirect to appropriate login page based on current route
     if (pathname.startsWith("/admin")) {
@@ -135,7 +142,7 @@ export function useAuth(requiredRole?: UserRole) {
 
     try {
       const payload = JSON.parse(atob(token.split(".")[1]));
-      setDecodedToken(payload); // Add this line to set decoded token
+      setDecodedToken(payload);
       const isExpired = payload.exp * 1000 < Date.now();
       const currentRole = payload.role;
       
@@ -192,7 +199,7 @@ export function useAuth(requiredRole?: UserRole) {
         
         // Decode and set the new token payload
         const payload = JSON.parse(atob(data.access_token.split(".")[1]));
-        setDecodedToken(payload); // Add this line
+        setDecodedToken(payload);
         setUserRole(payload.role);
         
         return true;
@@ -221,7 +228,6 @@ export function useAuth(requiredRole?: UserRole) {
     const initialize = async () => {
       const isAuthorized = await checkAuth();
       
-      // If not authenticated and a specific role is required, redirect to the appropriate login
       if (!isAuthorized && requiredRole) {
         router.push(getRoleLoginPath(requiredRole));
       }
@@ -229,12 +235,14 @@ export function useAuth(requiredRole?: UserRole) {
     
     initialize();
     
-    // Set up interval to check auth every 30 seconds
     const interval = setInterval(checkAuth, 30000);
+    const currentTimeout = refreshTimeoutRef.current;
     
     return () => {
       clearInterval(interval);
-      if (refreshTimeoutRef.current) clearTimeout(refreshTimeoutRef.current);
+      if (currentTimeout) {
+        clearTimeout(currentTimeout);
+      }
     };
   }, [checkAuth, requiredRole, router]);
 
@@ -245,6 +253,6 @@ export function useAuth(requiredRole?: UserRole) {
     userRole,
     checkAuth,
     isLoading,
-    decodedToken  // Add this to support agent functionality
+    decodedToken
   };
 }
