@@ -17,8 +17,8 @@ export default function PaymentForm() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(
+  const [success, ] = useState(false);
+  const [paymentStatus, ] = useState<PaymentStatus | null>(
     null
   );
 

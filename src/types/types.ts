@@ -62,38 +62,38 @@ export enum PackageCategory {
   LARGE = "LARGE",
 }
 
-export type PaymentStatus = {
-  authorization: any;
-  logs: any[];
-  updated_at: string;
-  event_type: string;
-  tx_ref: string;
-  mode: string;
-  type: string;
-  status: string;
-  amount: number;
-  currency: string;
-  number_of_attempts: number;
-  charges: {
-    [key: string]: any;
-  };
-  customization: {
-    title?: string;
-    description?: string;
-    logo?: string;
-  };
-  meta: {
-    [key: string]: any;
-  };
-  customer: {
-    name: string;
-    email: string;
-  };
-  created_at: string;
-  payment_method: string;
-  transaction_id: string;
-  reference: string;
-  metadata?: {
-    [key: string]: any;
-  };
-};
+// export type PaymentStatus = {
+//   authorization: any;
+//   logs: any[];
+//   updated_at: string;
+//   event_type: string;
+//   tx_ref: string;
+//   mode: string;
+//   type: string;
+//   status: string;
+//   amount: number;
+//   currency: string;
+//   number_of_attempts: number;
+//   charges: {
+//     [key: string]: any;
+//   };
+//   customization: {
+//     title?: string;
+//     description?: string;
+//     logo?: string;
+//   };
+//   meta: {
+//     [key: string]: any;
+//   };
+//   customer: {
+//     name: string;
+//     email: string;
+//   };
+//   created_at: string;
+//   payment_method: string;
+//   transaction_id: string;
+//   reference: string;
+//   metadata?: {
+//     [key: string]: any;
+//   };
+// };
