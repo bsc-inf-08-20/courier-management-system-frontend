@@ -43,7 +43,7 @@ export default function AgentLayout({
   const userData = {
     name: decodedToken?.name || "Agent",
     email: decodedToken?.email || "agent@example.com",
-    initials: decodedToken?.name
+    initials: typeof decodedToken?.name === 'string'
       ? decodedToken.name
           .split(" ")
           .map((n: string) => n[0])
@@ -173,10 +173,10 @@ export default function AgentLayout({
                   {sidebarOpen && (
                     <div className="flex flex-col text-left overflow-hidden">
                       <span className="text-sm font-medium truncate">
-                        {userData?.name || "Agent"}
+                        {String(userData?.name || "Agent")}
                       </span>
                       <span className="text-xs text-gray-500 truncate">
-                        {userData?.email || "agent@example.com"}
+                      {String(userData?.email || "agent@example.com")}
                       </span>
                     </div>
                   )}
