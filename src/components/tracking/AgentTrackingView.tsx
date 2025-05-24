@@ -25,7 +25,7 @@ interface Packet {
 
 type AgentTrackingViewProps = {
   apiKey: string;
-  agentId: number;
+  agentId: number;  // Change from 'any' to number
   mode: "collect" | "deliver";
 };
 
