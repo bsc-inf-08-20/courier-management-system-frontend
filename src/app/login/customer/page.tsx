@@ -1,12 +1,13 @@
 // /src/app/login/customer/page.tsx
 "use client";
+import { Suspense } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import SignupForm from "@/components/customer/SignupForm";
 import LoginForm from "@/components/customer/LoginForm";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
-export default function Auth() {
+function AuthContent() {
   const searchParams = useSearchParams();
   const defaultTab = searchParams.get("tab") === "signup" ? "signup" : "login";
 
@@ -41,5 +42,22 @@ export default function Auth() {
         </Tabs>
       </main>
     </div>
+  );
+}
+
+export default function Auth() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen min-w-full bg-gray-100 flex justify-center items-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      }
+    >
+      <AuthContent />
+    </Suspense>
   );
 }
