@@ -122,7 +122,7 @@ export default function BookingPageWrapper() {
 
 function CustomerBooking() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const [loading, ] = useState(false);
   const [, setUserData] = useState<UserData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>("");
