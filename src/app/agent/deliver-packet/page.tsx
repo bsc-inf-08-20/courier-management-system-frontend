@@ -1,32 +1,65 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
+import { MapPin, Check } from "lucide-react";
+import { toast } from "sonner";
+import { useEmail } from "@/contexts/EmailContext";
+import SignaturePad from "react-signature-canvas";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Packet {
   id: number;
-  customerName: string;
-  trackingId: string; 
-  destination: string;
-  status: "Pending Delivery" | "Done";
-  collected: boolean;
-  date: Date;
+  destination_coordinates: {
+    lat: number;
+    lng: number;
+  };
+  category: string;
+  sent_date: string;
+  customer: {
+    name: string;
+    phone_number: string;
+  };
+  status?: "Pending" | "Delivered";
+  signature_base64?: string;
 }
 
 export default function AgentDeliveryPage() {
+  const router = useRouter();
   const [packets, setPackets] = useState<Packet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [currentPacketId, setCurrentPacketId] = useState<number | null>(null);
+  const signaturePadRef = useRef<SignaturePad>(null);
+
+  const { sendNotification } = useEmail();
 
   // Fetch packets assigned to this agent
   useEffect(() => {
+    const token = localStorage.getItem("token");
     const fetchPackets = async () => {
       try {
-        const response = await fetch('/api/agent/packets');
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/packets/delivery-agent/packets`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const data = await response.json();
-        console.log("Packets for current agent:", data); // new line added
-        setPackets(data);
+        // Transform the data to match our component's needs
+        const transformedData = data.map((packet: Packet) => ({
+          ...packet,
+          status: packet.status || "Pending delivery",
+          customerName: packet.customer.name,
+        }));
+        setPackets(transformedData);
       } catch (error) {
         console.error("Error fetching packets:", error);
       } finally {
@@ -37,190 +70,205 @@ export default function AgentDeliveryPage() {
     fetchPackets();
   }, []);
 
-  const handleCollect = async (id: number) => {
+  const handleMarkDelivered = async (id: number) => {
+    setCurrentPacketId(id);
+    setIsSignatureModalOpen(true);
+  };
+
+  const handleConfirmDelivery = async () => {
+    if (!currentPacketId || !signaturePadRef.current) return;
+
+    const token = localStorage.getItem("token");
     try {
-      // Update local state optimistically
-      setPackets(prev =>
-        prev.map(packet =>
-          packet.id === id ? { ...packet, collected: true } : packet
+      // Get signature as base64 string
+      const signatureBase64 = signaturePadRef.current
+        .getTrimmedCanvas()
+        .toDataURL("image/png");
+
+      // Update local state first for immediate feedback
+      setPackets((prev) =>
+        prev.map((packet) =>
+          packet.id === currentPacketId
+            ? {
+                ...packet,
+                status: "Delivered",
+                signature_base64: signatureBase64,
+              }
+            : packet
         )
       );
 
-      // Update in database
-      await fetch(`/api/agent/packets/${id}/collect`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ collected: true }),
+      // Call API to update status and signature
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${currentPacketId}/mark-delivered`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            signature_base64: signatureBase64,
+          }),
+        }
+      );
+
+      await sendNotification("delivery-confirmation", {
+        packetId: packets.find((packet) => packet.id === currentPacketId)?.id,
       });
+
+      if (!response.ok) throw new Error("Failed to update status");
+      toast.success("Package marked as delivered");
+      setIsSignatureModalOpen(false);
     } catch (error) {
-      console.error("Error updating collection status:", error);
-      // Revert state if API call fails
-      setPackets(prev =>
-        prev.map(packet =>
-          packet.id === id ? { ...packet, collected: false } : packet
+      console.error("Error marking as delivered:", error);
+      toast.error("Failed to update delivery status");
+      // Revert state on error
+      setPackets((prev) =>
+        prev.map((packet) =>
+          packet.id === currentPacketId
+            ? { ...packet, status: "Pending", signature_base64: undefined }
+            : packet
         )
       );
     }
   };
 
-  const handleConfirmReceived = async (id: number) => {
-    try {
-      // Update local state optimistically
-      setPackets(prev =>
-        prev.map(packet =>
-          packet.id === id ? { ...packet, status: "Done" } : packet
-        )
-      );
-
-      // Update in database
-      await fetch(`/api/agent/packets/${id}/confirm`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: "Done" }),
-      });
-    } catch (error) {
-      console.error("Error confirming delivery:", error);
-      // Revert state if API call fails
-      setPackets(prev =>
-        prev.map(packet =>
-          packet.id === id ? { ...packet, status: "Pending Delivery" } : packet
-        )
-      );
+  const clearSignature = () => {
+    if (signaturePadRef.current) {
+      signaturePadRef.current.clear();
     }
   };
-
-  // Filter packets
-  const packetsToDeliver = packets.filter(p => !p.collected);
-  const collectedPackets = packets.filter(p => p.collected);
 
   if (loading) {
-    return <div className="text-center py-8">Loading packets...</div>;
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
   }
 
   return (
-    <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto">
-      <h1 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">Deliver Packets</h1>
+    <>
+      <div className="p-4 md:p-6 lg:p-8 max-w-6xl mx-auto">
+        <h1 className="text-xl md:text-2xl font-bold text-center mb-4 md:mb-6">
+          Deliver Packets
+        </h1>
 
-      <Tabs defaultValue="toDeliver">
-        <TabsList className="flex justify-center mb-4 gap-2">
-          <TabsTrigger value="toDeliver" className="px-3 py-1 text-sm md:px-4 md:py-2 md:text-base">
-            Packets to Deliver
-          </TabsTrigger>
-          <TabsTrigger value="confirmReceived" className="px-3 py-1 text-sm md:px-4 md:py-2 md:text-base">
-            Confirm Received
-          </TabsTrigger>
-        </TabsList>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+          {packets.map((packet) => (
+            <Card
+              key={packet.id}
+              className="p-6 hover:shadow-lg transition-shadow"
+            >
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-gray-500">
+                    ID: #{packet.id}
+                  </span>
+                  <span
+                    className={`px-3 py-1 rounded-full text-sm ${
+                      packet.status === "Delivered"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-blue-100 text-blue-800"
+                    }`}
+                  >
+                    {packet.status}
+                  </span>
+                </div>
 
-        {/* Packets to Deliver */}
-        <TabsContent value="toDeliver">
-          <div className="border rounded-lg shadow-sm overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                
-                  <th className="p-3 text-left text-sm md:text-base">Customer</th>
-                  <th className="p-3 text-left text-sm md:text-base">Destination</th>
-                  <th className="p-3 text-left text-sm md:text-base">Date</th> 
-                  <th className="p-3 text-left text-sm md:text-base">Status</th>
-                  <th className="p-3 text-left text-sm md:text-base">Mark Collected</th>
-                </tr>
-              </thead>
-              <tbody>
-                {packetsToDeliver.length > 0 ? (
-                  packetsToDeliver.map(packet => (
-                    <tr key={packet.id} className="border-t">
-                      <td className="p-3 text-sm md:text-base">{packet.customerName}</td>
-                      <td className="p-3 text-sm md:text-base">{packet.destination}</td>
-                      <td className="p-3 text-sm md:text-base">{new Date(packet.date).toLocaleDateString()}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded text-xs md:text-sm ${
-                          packet.status === "Pending Delivery" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-                        }`}>
-                          {packet.status}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        <Checkbox
-                          checked={packet.collected}
-                          onChange={() => handleCollect(packet.id)}
-                          aria-label={`Mark ${packet.customerName}'s packet as collected`}
-                        />
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500 text-sm md:text-base">
-                      Currently you dont have any packets assigned to you to deliver to the customer
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                <div className="space-y-3">
+                  <div className=" items-center space-x-2">
+                    <div>
+                      <span className="capitalize font-bold">
+                        {packet.category}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="capitalize">{packet.customer.name}</span>
+                    </div>
+                    <div>
+                      <span className="capitalize">
+                        {packet.customer.phone_number}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <MapPin className="h-5 w-5 text-gray-400" />
+                    <button
+                      onClick={() =>
+                        router.push(
+                          `/agent/map?lat=${packet.destination_coordinates.lat}&lng=${packet.destination_coordinates.lng}`
+                        )
+                      }
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      View on Map
+                    </button>
+                  </div>
+
+                  <Button
+                    onClick={() => handleMarkDelivered(packet.id)}
+                    disabled={packet.status === "Delivered"}
+                    className={`w-full ${
+                      packet.status === "Delivered"
+                        ? "bg-green-500 hover:bg-green-600"
+                        : "bg-blue-600 hover:bg-blue-700"
+                    }`}
+                  >
+                    {packet.status === "Delivered" ? (
+                      <span className="flex items-center space-x-2">
+                        <Check className="h-5 w-5" />
+                        <span>Delivered</span>
+                      </span>
+                    ) : (
+                      "Mark as Delivered"
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+
+          {packets.length === 0 && (
+            <div className="col-span-full text-center py-12 bg-gray-50 rounded-lg">
+              <h3 className="text-lg font-medium text-gray-900">No Packets</h3>
+              <p className="mt-2 text-gray-500">
+                There are no packets assigned for delivery at the moment.
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <Dialog
+        open={isSignatureModalOpen}
+        onOpenChange={setIsSignatureModalOpen}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Customer Signature</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="border rounded-lg p-2 bg-white">
+              <SignaturePad
+                ref={signaturePadRef}
+                canvasProps={{
+                  className: "w-full h-64",
+                  style: { border: "1px solid #e2e8f0" },
+                }}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={clearSignature}>
+                Clear
+              </Button>
+              <Button onClick={handleConfirmDelivery}>Confirm Delivery</Button>
+            </div>
           </div>
-        </TabsContent>
-
-        {/* Confirm Received */}
-        <TabsContent value="confirmReceived">
-          <div className="border rounded-lg shadow-sm overflow-x-auto">
-            <table className="min-w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-3 text-left text-sm md:text-base">Customer</th>
-                  <th className="p-3 text-left text-sm md:text-base">Destination</th>
-                  <th className="p-3 text-left text-sm md:text-base">Date</th> 
-                  <th className="p-3 text-left text-sm md:text-base">Tracking ID</th> 
-                  <th className="p-3 text-left text-sm md:text-base">Status</th>
-                  <th className="p-3 text-left text-sm md:text-base">Confirm Received</th>
-                </tr>
-                
-              </thead>
-              <tbody>
-                {collectedPackets.length > 0 ? (
-                  collectedPackets.map(packet => (
-                    <tr key={packet.id} className="border-t">
-                      <td className="p-3 text-sm md:text-base">{packet.customerName}</td>
-                      <td className="p-3 text-sm md:text-base">{packet.destination}</td>
-                      <td className="p-3 text-sm md:text-base text-blue-600">{packet.trackingId}</td> 
-                      <td className="p-3 text-sm md:text-base">{new Date(packet.date).toLocaleDateString()}</td>
-                      <td className="p-3">
-                        <span className={`px-2 py-1 rounded text-xs md:text-sm ${
-                          packet.status === "Pending Delivery" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-                        }`}>
-                          {packet.status}
-                        </span>
-                      </td>
-                      <td className="p-3">
-                        {packet.status === "Pending Delivery" ? (
-                          <Button
-                            size="sm"
-                            onClick={() => handleConfirmReceived(packet.id)}
-                            className="text-xs md:text-sm"
-                          >
-                            Confirm
-                          </Button>
-                        ) : (
-                          <span className="text-green-600 font-semibold text-sm md:text-base">Done</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={4} className="text-center py-6 text-gray-500 text-sm md:text-base">
-                         No packets you have selected yet to deliver to the customers
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
