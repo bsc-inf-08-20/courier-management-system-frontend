@@ -57,7 +57,7 @@ export default function AgentPage() {
     const token = localStorage.getItem("token");
     setLoading(true);
 
-    fetch("http://localhost:3001/users", {
+    fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users`, {
       headers: { Authorization: `Bearer ${token}` },
     })
       .then((res) => {
@@ -92,7 +92,7 @@ export default function AgentPage() {
     setDeletingId(id);
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:3001/users/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
@@ -215,7 +215,7 @@ function EditUserModal({ user, setUser, setUsers, users }: EditUserModalProps) {
 
   const handleSave = async () => {
     setSaving(true);
-    const res = await fetch(`http://localhost:3001/users/${user.user_id}`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/${user.user_id}`, {
       method: "PATCH",
       headers: {
         "Content-Type": "application/json",

@@ -97,7 +97,7 @@ const AgentPickupPage = () => {
       setLoading(true);
       try {
         // Fetch agent info
-        const agentRes = await fetch("http://localhost:3001/users/me-data", {
+        const agentRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -112,7 +112,7 @@ const AgentPickupPage = () => {
 
         // Fetch requests with valid agentId
         const requestsRes = await fetch(
-          `http://localhost:3001/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -155,7 +155,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${packetId}/weight`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${packetId}/weight`,
         {
           method: "PATCH",
           headers: {
@@ -212,7 +212,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${pickupId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {
@@ -273,7 +273,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${pickupId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {

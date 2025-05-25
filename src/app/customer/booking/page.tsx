@@ -164,7 +164,7 @@ function CustomerBooking() {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3001/users/me-data", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -226,7 +226,7 @@ function CustomerBooking() {
     try {
       // Create booking first
       const bookingResponse = await fetch(
-        "http://localhost:3001/pickup/request",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/request`,
         {
           method: "POST",
           headers: {

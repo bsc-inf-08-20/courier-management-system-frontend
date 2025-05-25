@@ -47,7 +47,7 @@ export default function MonthlyReportPage() {
 
   useEffect(() => {
     async function fetchPickups() {
-      const response = await fetch("http://localhost:3001/agent-confirm-pickup");
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/agent-confirm-pickup`);
       const data = await response.json();
       
       console.log(data);  // Log to check the data format
@@ -66,7 +66,7 @@ export default function MonthlyReportPage() {
   // useEffect(() => {
   //   // Fetch the data dynamically (replace with actual API call)
   //   async function fetchPickups() {
-  //     const response = await fetch("http://localhost:3001/agent-confirm-pickup"); // Adjust API endpoint
+  //     const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/agent-confirm-pickup"); // Adjust API endpoint
   //     const data = await response.json();
   //     setPickups(data);
   //   }

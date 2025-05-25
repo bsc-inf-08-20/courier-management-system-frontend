@@ -54,7 +54,7 @@
 //   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState<string | null>(null);
 //   const router = useRouter();
-//   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+//   const API_URL = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001';
 
 //   const fetchUserData = async (token: string) => {
 //     if (!token) {

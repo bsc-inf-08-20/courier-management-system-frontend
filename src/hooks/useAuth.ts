@@ -78,7 +78,7 @@ export function useAuth(requiredRole?: UserRole) {
         }
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}${endpoint}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}${endpoint}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -196,7 +196,7 @@ export function useAuth(requiredRole?: UserRole) {
       if (!refreshToken) return false;
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/refresh`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

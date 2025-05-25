@@ -65,7 +65,7 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/packets/unassign-from-vehicle`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-from-vehicle`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +85,7 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
       );
 
       // Refresh vehicles
-      const vehicleRes = await fetch(`http://localhost:3001/packets/available-vehicles?city=${adminCity}`, {
+      const vehicleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!vehicleRes.ok) throw new Error("Failed to fetch updated vehicles");
@@ -112,8 +112,8 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
 
     try {
       const endpoint = assigningPackets.length === 1
-        ? "http://localhost:3001/packets/assign-to-vehicle"
-        : "http://localhost:3001/packets/assign-multiple-to-vehicle";
+        ? `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-to-vehicle`
+        : `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-multiple-to-vehicle`;
 
       const body = assigningPackets.length === 1
         ? { packetId: assigningPackets[0], vehicleId: selectedVehicle }
@@ -143,7 +143,7 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
         })
       );
 
-      const vehicleRes = await fetch(`http://localhost:3001/packets/available-vehicles?city=${adminCity}`, {
+      const vehicleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!vehicleRes.ok) throw new Error("Failed to fetch updated vehicles");

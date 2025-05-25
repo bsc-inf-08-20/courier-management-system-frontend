@@ -64,7 +64,7 @@ export function useAuth(requiredRole = "AGENT") {
           return false;
         }
 
-        const response = await fetch("http://localhost:3001/auth/refresh", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/refresh`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refresh_token: refreshToken }),

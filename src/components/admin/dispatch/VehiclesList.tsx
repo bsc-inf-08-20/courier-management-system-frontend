@@ -27,7 +27,7 @@ const VehiclesList: React.FC<VehiclesListProps> = ({ vehicles, setVehicles, admi
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/packets/dispatch-vehicle/${vehicleId}`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/dispatch-vehicle/${vehicleId}`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -55,7 +55,7 @@ const VehiclesList: React.FC<VehiclesListProps> = ({ vehicles, setVehicles, admi
     }
 
     try {
-      const response = await fetch(`http://localhost:3001/packets/unassign-from-vehicle`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-from-vehicle`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ const VehiclesList: React.FC<VehiclesListProps> = ({ vehicles, setVehicles, admi
       }
 
       // Refresh vehicles list
-      const vehicleRes = await fetch(`http://localhost:3001/packets/available-vehicles?city=${adminCity}`, {
+      const vehicleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!vehicleRes.ok) throw new Error("Failed to fetch updated vehicles");

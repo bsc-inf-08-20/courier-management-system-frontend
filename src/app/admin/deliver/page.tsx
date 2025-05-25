@@ -40,24 +40,24 @@ const DeliveryPage = () => {
 
     const fetchData = async () => {
       try {
-        const adminRes = await fetch("http://localhost:3001/users/me", {
+        const adminRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         const adminData = await adminRes.json();
         setAdminCity(adminData.city);
 
         const agentsRes = await fetch(
-          `http://localhost:3001/users/agents?city=${adminData.city}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/agents?city=${adminData.city}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         const agentsData = await agentsRes.json();
         setAgents(Array.isArray(agentsData) ? agentsData : []);
 
         const [atDestinationRes, outForDeliveryRes] = await Promise.all([
-          fetch(`http://localhost:3001/packets/at-destination-hub?city=${adminData.city}`, {
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/at-destination-hub?city=${adminData.city}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`http://localhost:3001/packets/out-for-delivery?city=${adminData.city}`, {
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/out-for-delivery?city=${adminData.city}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);
@@ -86,7 +86,7 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:3001/packets/assign-delivery-agent`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-delivery-agent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:3001/packets/unassign-delivery-agent`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-delivery-agent`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -149,7 +149,7 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`http://localhost:3001/packets/confirm-delivery`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/confirm-delivery`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

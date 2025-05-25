@@ -53,7 +53,7 @@ export function CreateAgentModal({ onAgentCreated }: CreateAgentModalProps) {
 
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -27,7 +27,7 @@ const AgentPage = () => {
 
     try {
       // Send the data to the backend
-      const response = await fetch("http://localhost:3001/agent-confirm-pickup/confirm", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/agent-confirm-pickup/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

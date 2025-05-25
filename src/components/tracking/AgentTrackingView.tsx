@@ -163,7 +163,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         console.log("[Debug] Making request for agent:", agentId);
         
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}${endpoint}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
