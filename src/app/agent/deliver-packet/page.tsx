@@ -39,8 +39,6 @@ export default function AgentDeliveryPage() {
   const [currentPacketId, setCurrentPacketId] = useState<number | null>(null);
   const signaturePadRef = useRef<SignaturePad>(null);
 
-  const { sendNotification } = useEmail();
-
   // Fetch packets assigned to this agent
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -113,12 +111,24 @@ export default function AgentDeliveryPage() {
         }
       );
 
-      await sendNotification("delivery-confirmation", {
-        packetId: packets.find((packet) => packet.id === currentPacketId)?.id,
-      });
-
       if (!response.ok) throw new Error("Failed to update status");
-      toast.success("Package marked as delivered");
+
+      // Send delivery confirmation email
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/delivery-confirmation`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            packetId: currentPacketId,
+          }),
+        }
+      );
+
+      toast.success("Package marked as delivered and confirmation email sent");
       setIsSignatureModalOpen(false);
     } catch (error) {
       console.error("Error marking as delivered:", error);

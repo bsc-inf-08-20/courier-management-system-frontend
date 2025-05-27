@@ -17,7 +17,7 @@ export const calculateDeliveryFee = (
 
   // For same city pickup
   if (originCity === destinationCity) {
-    return 7000; // Base pickup fee
+    return 2000; // Base pickup fee
   }
 
   // Calculate base price

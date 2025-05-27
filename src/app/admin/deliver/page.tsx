@@ -29,10 +29,14 @@ const DeliveryPage = () => {
   const [agents, setAgents] = useState<Agent[]>([]);
   const [adminCity, setAdminCity] = useState<string>("");
   const [loading, setLoading] = useState(false);
-  const [filterType, setFilterType] = useState<"to_be_picked_up" | "to_be_delivered">("to_be_picked_up");
+  const [filterType, setFilterType] = useState<
+    "to_be_picked_up" | "to_be_delivered"
+  >("to_be_picked_up");
   const [reassignPacketId, setReassignPacketId] = useState<number | null>(null);
   const [agentToRemove, setAgentToRemove] = useState<number | null>(null);
-  const [confirmDeliveryId, setConfirmDeliveryId] = useState<number | null>(null);
+  const [confirmDeliveryId, setConfirmDeliveryId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -40,9 +44,12 @@ const DeliveryPage = () => {
 
     const fetchData = async () => {
       try {
-        const adminRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const adminRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const adminData = await adminRes.json();
         setAdminCity(adminData.city);
 
@@ -54,12 +61,18 @@ const DeliveryPage = () => {
         setAgents(Array.isArray(agentsData) ? agentsData : []);
 
         const [atDestinationRes, outForDeliveryRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/at-destination-hub?city=${adminData.city}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/out-for-delivery?city=${adminData.city}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/packets/at-destination-hub?city=${adminData.city}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          ),
+          fetch(
+            `${process.env.NEXT_PUBLIC_BASE_URL}/packets/out-for-delivery?city=${adminData.city}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          ),
         ]);
 
         const atDestinationData = await atDestinationRes.json();
@@ -86,21 +99,39 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-delivery-agent`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ packetId, agentId }),
-      });
+      // First assign the agent
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-delivery-agent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ packetId, agentId }),
+        }
+      );
 
       if (res.ok) {
         const updatedPacket = await res.json();
+
+        // Send notification
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/delivery-assignment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ packetId }),
+          }
+        );
+
         setPackets((prev) =>
           prev.map((p) => (p.id === packetId ? updatedPacket : p))
         );
-        toast.success("Agent assigned successfully.");
+        toast.success("Agent assigned and notified successfully.");
       } else {
         throw new Error("Failed to assign agent");
       }
@@ -117,14 +148,17 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-delivery-agent`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ packetId }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-delivery-agent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ packetId }),
+        }
+      );
 
       if (res.ok) {
         const updatedPacket = await res.json();
@@ -149,31 +183,32 @@ const DeliveryPage = () => {
     const token = localStorage.getItem("token");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/confirm-delivery`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ packetId }),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/confirm-delivery`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ packetId }),
+        }
+      );
 
       if (res.ok) {
         const updatedPacket = await res.json();
-        console.log(updatedPacket)
-        setPackets((prev) =>
-          prev.filter((p) => p.id !== packetId) // Remove delivered packet from list
+        console.log(updatedPacket);
+        setPackets(
+          (prev) => prev.filter((p) => p.id !== packetId) // Remove delivered packet from list
         );
         toast.success("Delivery confirmed successfully.");
       } else {
-        
         throw new Error("Failed to confirm delivery");
       }
     } catch (error) {
-     console.log(error)
-     toast.error("Failed to confirm delivery");
+      console.log(error);
+      toast.error("Failed to confirm delivery");
     } finally {
-      
       setLoading(false);
       setConfirmDeliveryId(null);
     }
@@ -243,7 +278,9 @@ const DeliveryPage = () => {
                 >
                   <div>
                     <p className="font-medium">{agent.name}</p>
-                    <p className="text-sm text-gray-600">{agent.phone_number}</p>
+                    <p className="text-sm text-gray-600">
+                      {agent.phone_number}
+                    </p>
                   </div>
                   <Button
                     size="sm"
@@ -270,7 +307,8 @@ const DeliveryPage = () => {
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Removal</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to remove the assigned agent from this packet?
+              Are you sure you want to remove the assigned agent from this
+              packet?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -296,7 +334,9 @@ const DeliveryPage = () => {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => confirmDelivery(confirmDeliveryId!)}>
+            <AlertDialogAction
+              onClick={() => confirmDelivery(confirmDeliveryId!)}
+            >
               Confirm Delivery
             </AlertDialogAction>
           </AlertDialogFooter>

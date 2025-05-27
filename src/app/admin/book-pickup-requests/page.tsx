@@ -230,9 +230,12 @@ const BookPickupRequestsPage = () => {
 
     const fetchData = async () => {
       try {
-        const adminRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const adminRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const adminData = await adminRes.json();
         setAdminCity(adminData.city);
 
@@ -317,6 +320,7 @@ const BookPickupRequestsPage = () => {
     const token = localStorage.getItem("token");
 
     try {
+      // First assign the agent
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/${requestId}/assign`,
         {
@@ -330,7 +334,20 @@ const BookPickupRequestsPage = () => {
       );
 
       if (res.ok) {
-        toast.success("Agent assigned successfully.");
+        // If assignment successful, send notification
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/pickup-assignment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ pickupRequestId: requestId }),
+          }
+        );
+
+        toast.success("Agent assigned and notified successfully.");
         const updatedRequests = requests.map((req) =>
           req.id === requestId
             ? {
