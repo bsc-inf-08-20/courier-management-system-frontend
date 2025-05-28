@@ -488,7 +488,7 @@ const BookPickupRequestsPage = () => {
   return (
     <div className="p-6 w-full">
       <h2 className="text-2xl font-bold mb-4 text-center">
-        Book Pickup Requests ({adminCity})
+        Pickup Requests ({adminCity})
       </h2>
 
       <div className="flex justify-center gap-4 mb-6">

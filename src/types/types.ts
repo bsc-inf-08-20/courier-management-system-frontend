@@ -13,6 +13,7 @@ export interface Packet {
   status: string;
   weight: number;
   category: string;
+  delivery_type: string;
   origin_address: string;
   destination_address: string;
   collected_at?: string;
@@ -28,6 +29,11 @@ export interface Packet {
   assigned_delivery_agent?: Agent | null;
   pickup?: {
     customer: Customer;
+  };
+  receiver: {
+    name: string;
+    phone_number: string;
+    address: string;
   };
 }
 
