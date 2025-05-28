@@ -4,16 +4,21 @@ export const HOME_DELIVERY_FEE = 7000;
 
 const ROUTE_PRICES: Record<string, Record<string, number>> = {
   Lilongwe: {
-    Mzuzu: 9000,
-    Blantyre: 6000,
+    Mzuzu: 1000,
+    Blantyre: 1000,
   },
   Blantyre: {
-    Mzuzu: 15000,
-    Lilongwe: 6000,
+    Mzuzu: 2000,
+    Lilongwe: 1000,
   },
   Mzuzu: {
-    Lilongwe: 9000,
-    Blantyre: 15000,
+    Lilongwe: 1000,
+    Blantyre: 1300,
+  },
+  Zomba: {
+    Lilongwe: 800,
+    Blantyre: 800,
+    Mzuzu: 800,
   },
 };
 

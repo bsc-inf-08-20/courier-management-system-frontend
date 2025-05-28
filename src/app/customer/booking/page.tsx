@@ -26,7 +26,6 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
-// import { calculateDeliveryFee } from "@/utils/paymentCalculator";
 import {
   calculateDeliveryFee,
   getFeeBreakdown,
@@ -36,6 +35,11 @@ const HUB_LOCATIONS = [
   { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
   { name: "Lilongwe", coordinates: { lat: -13.9626, lng: 33.7741 } },
   { name: "Blantyre", coordinates: { lat: -15.7861, lng: 35.0058 } },
+  { name: "Zomba", coordinates: { lat: -15.3833, lng: 35.3333 } },
+  { name: "Karonga", coordinates: { lat: -9.95, lng: 33.9333 } },
+  { name: "Kasungu", coordinates: { lat: -13.0333, lng: 33.4333 } },
+  { name: "Mangochi", coordinates: { lat: -14.4667, lng: 35.2833 } },
+  { name: "Salima", coordinates: { lat: -13.7667, lng: 34.5167 } },
 ];
 
 const TIME_WINDOWS = [
@@ -54,12 +58,13 @@ interface FormData {
   packet_category: string;
   instructions: string;
   delivery_type: string;
+  pickup_city: string;
+  pickup_address: string;
   sender: {
     name: string;
     email: string;
     phone_number: string;
   };
-  pickup_address: string;
   origin_coordinates: { lat: number; lng: number };
   receiver: {
     name: string;
@@ -104,7 +109,8 @@ const validateSection = (section: string, formData: FormData): boolean => {
       );
     case "pickup":
       return !!(
-        formData.pickup_address?.trim() && // Check if address exists and is not empty
+        formData.pickup_city &&
+        formData.pickup_address &&
         formData.origin_coordinates &&
         formData.origin_coordinates.lat !== 0 &&
         formData.origin_coordinates.lng !== 0
@@ -122,7 +128,7 @@ export default function BookingPageWrapper() {
 
 function CustomerBooking() {
   const router = useRouter();
-  const [loading, ] = useState(false);
+  const [loading] = useState(false);
   const [, setUserData] = useState<UserData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>("");
@@ -132,13 +138,14 @@ function CustomerBooking() {
     packet_weight: "",
     packet_category: "",
     instructions: "",
+    pickup_city: "",
+    pickup_address: "",
     delivery_type: "pickup",
     sender: {
       name: "",
       email: "",
       phone_number: "",
     },
-    pickup_address: "",
     origin_coordinates: { lat: 0, lng: 0 },
     receiver: {
       name: "",
@@ -164,18 +171,21 @@ function CustomerBooking() {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) throw new Error("Failed to fetch user data");
 
         const data: UserData = await response.json();
         setUserData(data);
 
-        // Pre-fill sender information
+        // Pre-fill sender information and pickup city
         setFormData((prev) => ({
           ...prev,
           sender: {
@@ -183,7 +193,7 @@ function CustomerBooking() {
             email: data.email,
             phone_number: data.phone_number,
           },
-          pickup_address: data.city,
+          pickup_city: data.city,
           origin_coordinates: getCityCoordinates(data.city),
         }));
       } catch (error) {
@@ -208,7 +218,7 @@ function CustomerBooking() {
     }
 
     const deliveryFee = calculateDeliveryFee(
-      formData.pickup_address,
+      formData.pickup_city,
       formData.destination_hub,
       formData.packet_category,
       formData.delivery_type === "delivery",
@@ -216,7 +226,7 @@ function CustomerBooking() {
     );
 
     const feeBreakdown = getFeeBreakdown(
-      formData.pickup_address,
+      formData.pickup_city,
       formData.destination_hub,
       formData.packet_category,
       formData.delivery_type === "delivery",
@@ -224,7 +234,7 @@ function CustomerBooking() {
     );
 
     try {
-      // Create booking first
+      // Create booking with origin_city and origin_address mapped from pickup_city and pickup_address
       const bookingResponse = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/request`,
         {
@@ -235,6 +245,8 @@ function CustomerBooking() {
           },
           body: JSON.stringify({
             ...formData,
+            origin_city: formData.pickup_city,
+            origin_address: formData.pickup_address,
             packet_weight: parseFloat(formData.packet_weight),
             pickup_window: {
               start: `${format(selectedDate, "yyyy-MM-dd")}T${
@@ -262,7 +274,7 @@ function CustomerBooking() {
           amount: deliveryFee.toString(),
           email: formData.sender.email,
           name: formData.sender.name,
-          origin: formData.pickup_address,
+          origin_city: formData.pickup_city,
           destination: formData.destination_hub,
           category: formData.packet_category,
           delivery_type: formData.delivery_type,
@@ -301,7 +313,7 @@ function CustomerBooking() {
     if (JSON.stringify(updatedSections) !== JSON.stringify(sections)) {
       setSections(updatedSections);
     }
-  }, [formData, selectedDate, selectedTimeWindow]); // Remove sections from dependencies
+  }, [formData, selectedDate, selectedTimeWindow]);
 
   const progress = useMemo(() => {
     const completedSections = Object.values(sections).filter(
@@ -424,24 +436,61 @@ function CustomerBooking() {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-4">
-                    <MapComponent
-                      initialCenter={{ lat: -13.9626, lng: 33.7741 }}
-                      onLocationSelect={(coords) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          origin_coordinates: coords,
-                        }))
-                      }
-                      selectedCoordinates={formData.origin_coordinates}
-                      label="Select pickup location (City)"
-                      onAddressChange={(address) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          pickup_address: address,
-                        }))
-                      }
-                      addressInputValue={formData.pickup_address}
-                    />
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Pickup Location</h3>
+                    </div>
+                    <Separator />
+
+                    {/* Origin City Selection */}
+                    <div>
+                      <Label>Pickup City</Label>
+                      <Select
+                        value={formData.pickup_city}
+                        onValueChange={(value) => {
+                          const coords = getCityCoordinates(value);
+                          setFormData((prev) => ({
+                            ...prev,
+                            pickup_city: value,
+                            origin_coordinates: coords,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select pickup city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUB_LOCATIONS.map((hub) => (
+                            <SelectItem key={hub.name} value={hub.name}>
+                              {hub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Specific Pickup Location Map */}
+                    <div className="space-y-4">
+                      <Label>Pickup Address</Label>
+                      <MapComponent
+                        initialCenter={formData.origin_coordinates}
+                        onLocationSelect={(coords) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            origin_coordinates: coords,
+                          }))
+                        }
+                        selectedCoordinates={formData.origin_coordinates}
+                        label="Select pickup address"
+                        onAddressChange={(address) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            pickup_address: address,
+                          }))
+                        }
+                        addressInputValue={formData.pickup_address}
+                      />
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

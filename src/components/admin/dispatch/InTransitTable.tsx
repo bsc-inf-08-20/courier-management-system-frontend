@@ -1,6 +1,13 @@
 // InTransitTable.tsx
 import React from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Packet } from "@/types/types";
 
 interface InTransitTableProps {
@@ -8,7 +15,10 @@ interface InTransitTableProps {
   loading: boolean;
 }
 
-const InTransitTable: React.FC<InTransitTableProps> = ({ packets, loading }) => {
+const InTransitTable: React.FC<InTransitTableProps> = ({
+  packets,
+  loading,
+}) => {
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString();
@@ -32,17 +42,21 @@ const InTransitTable: React.FC<InTransitTableProps> = ({ packets, loading }) => 
                 <TableHead>Destination</TableHead>
                 <TableHead>Dispatched At</TableHead>
                 <TableHead>Vehicle</TableHead>
-                <TableHead>License Plate</TableHead> {/* Add License Plate column */}
+                <TableHead>License Plate</TableHead>{" "}
+                {/* Add License Plate column */}
               </TableRow>
             </TableHeader>
             <TableBody>
               {packets.map((packet) => (
-                <TableRow key={`in-transit-${packet.id}`} className="hover:bg-gray-50">
+                <TableRow
+                  key={`in-transit-${packet.id}`}
+                  className="hover:bg-gray-50"
+                >
                   <TableCell>{packet.id}</TableCell>
                   <TableCell>{packet.description || "N/A"}</TableCell>
                   <TableCell>{packet.weight || 0} kg</TableCell>
-                  <TableCell>{packet.origin_address || "N/A"}</TableCell>
-                  <TableCell>{packet.destination_address || "N/A"}</TableCell>
+                  <TableCell>{packet.origin_city || "N/A"}</TableCell>
+                  <TableCell>{packet.destination_hub || "N/A"}</TableCell>
                   <TableCell>{formatDate(packet.dispatched_at)}</TableCell>
                   <TableCell>
                     {packet.assigned_vehicle

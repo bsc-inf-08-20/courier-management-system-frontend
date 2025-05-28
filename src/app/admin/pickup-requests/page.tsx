@@ -44,7 +44,7 @@ interface Packet {
   status: string;
   weight: number;
   category: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
   collected_at?: string;
 }
@@ -88,7 +88,7 @@ const UnassignedRequests = ({
     (req) =>
       req.status === "pending" &&
       !req.assigned_agent &&
-      req.packet.origin_address.includes(adminCity)
+      req.packet.origin_city.includes(adminCity)
   );
 
   const assignAgent = async (requestId: number) => {
@@ -288,7 +288,7 @@ const BookPickupRequestsPage = () => {
         (req) =>
           req.status === "pending" &&
           !req.assigned_agent &&
-          req.packet.origin_address.includes(adminCity)
+          req.packet.origin_city.includes(adminCity)
       );
     } else if (type === "assigned") {
       filtered = requestData.filter(
@@ -307,7 +307,7 @@ const BookPickupRequestsPage = () => {
       filtered = requestData.filter(
         (req) =>
           req.packet.status === "at_origin_hub" &&
-          req.packet.origin_address.includes(adminCity)
+          req.packet.origin_city.includes(adminCity)
       );
     }
 

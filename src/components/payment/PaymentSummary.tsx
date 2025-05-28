@@ -25,7 +25,8 @@ const LOCATION_PRICING: Record<Location, Partial<Record<Location, number>>> = {
   "Mzuzu": {
     "Lilongwe": 9000,
     "Blantyre": 15000
-  }
+  },
+  
 };
 
 const PACKAGE_CATEGORY_PRICES: Record<PackageCategory, number> = {

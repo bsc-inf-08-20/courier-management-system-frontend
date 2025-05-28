@@ -13,6 +13,8 @@ export const calculateDeliveryFee = (
     'Mzuzu-Lilongwe': 9000,
     'Blantyre-Lilongwe': 6000,
     'Mzuzu-Blantyre': 15000,
+    'Zomba-Lilongwe': 4000,
+    'Zomba-Blantyre': 200
   };
 
   // For same city pickup

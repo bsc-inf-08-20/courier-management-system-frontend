@@ -20,7 +20,7 @@ interface UnassignedRequestsProps {
   onAssignAgent: (requestId: number, agentId: number) => Promise<void>;
 }
 
- export const UnassignedRequests = ({
+export const UnassignedRequests = ({
   requests,
   agents,
   adminCity,
@@ -36,7 +36,7 @@ interface UnassignedRequestsProps {
     (req) =>
       req.status === "pending" &&
       !req.assigned_agent &&
-      req.packet.origin_address.includes(adminCity)
+      req.packet.origin_city.includes(adminCity)
   );
 
   const assignAgent = async (requestId: number) => {
@@ -169,7 +169,7 @@ interface Packet {
   status: string;
   weight: number;
   category: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
   collected_at?: string;
 }

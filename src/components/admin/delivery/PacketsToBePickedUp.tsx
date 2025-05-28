@@ -1,7 +1,14 @@
 // PacketsToBePickedUp.tsx
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { toast } from "sonner";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Packet, Agent } from "@/types/types";
@@ -20,7 +27,9 @@ const PacketsToBePickedUp: React.FC<PacketsToBePickedUpProps> = ({
   onAssignAgent,
 }) => {
   const [expandedPacket, setExpandedPacket] = useState<number | null>(null);
-  const [assignments, setAssignments] = useState<{ [key: number]: number | null }>({});
+  const [assignments, setAssignments] = useState<{
+    [key: number]: number | null;
+  }>({});
 
   const filteredPackets = packets.filter(
     (packet) =>
@@ -59,19 +68,25 @@ const PacketsToBePickedUp: React.FC<PacketsToBePickedUpProps> = ({
               <TableRow
                 className="cursor-pointer hover:bg-gray-100"
                 onClick={() =>
-                  setExpandedPacket(expandedPacket === packet.id ? null : packet.id)
+                  setExpandedPacket(
+                    expandedPacket === packet.id ? null : packet.id
+                  )
                 }
               >
                 <TableCell>{packet.id}</TableCell>
                 <TableCell>{packet.description}</TableCell>
                 <TableCell>{packet.weight} kg</TableCell>
-                <TableCell>{packet.origin_address}</TableCell>
+                <TableCell>{packet.origin_city}</TableCell>
                 <TableCell>{packet.destination_address}</TableCell>
                 <TableCell>At Destination Hub</TableCell>
                 <TableCell>
                   <div className="flex justify-between">
                     <span>Click to assign agent</span>
-                    {expandedPacket === packet.id ? <ChevronUp /> : <ChevronDown />}
+                    {expandedPacket === packet.id ? (
+                      <ChevronUp />
+                    ) : (
+                      <ChevronDown />
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -89,7 +104,9 @@ const PacketsToBePickedUp: React.FC<PacketsToBePickedUpProps> = ({
                             >
                               <div className="flex-1">
                                 <p className="font-semibold">{agent.name}</p>
-                                <p className="text-sm text-gray-500">{agent.phone_number}</p>
+                                <p className="text-sm text-gray-500">
+                                  {agent.phone_number}
+                                </p>
                               </div>
                               <Button
                                 size="sm"
@@ -100,7 +117,9 @@ const PacketsToBePickedUp: React.FC<PacketsToBePickedUpProps> = ({
                                   })
                                 }
                                 variant={
-                                  assignments[packet.id] === agent.user_id ? "default" : "outline"
+                                  assignments[packet.id] === agent.user_id
+                                    ? "default"
+                                    : "outline"
                                 }
                               >
                                 Select

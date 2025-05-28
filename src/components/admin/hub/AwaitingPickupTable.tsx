@@ -1,4 +1,11 @@
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Packet } from "@/types/types";
 
@@ -7,7 +14,10 @@ interface Props {
   onConfirmPickup: (packetId: number) => void;
 }
 
-export default function AwaitingPickupTable({ packets, onConfirmPickup }: Props) {
+export default function AwaitingPickupTable({
+  packets,
+  onConfirmPickup,
+}: Props) {
   return (
     <Table>
       <TableHeader>
@@ -29,16 +39,32 @@ export default function AwaitingPickupTable({ packets, onConfirmPickup }: Props)
             <TableCell>{packet.description}</TableCell>
             <TableCell>{packet.category}</TableCell>
             <TableCell>{packet.weight} kg</TableCell>
-            <TableCell>{packet.origin_address}</TableCell>
+            <TableCell>{packet.origin_city}</TableCell>
             <TableCell>
-              {typeof packet.sender === 'string' ? JSON.parse(packet.sender).name : packet.sender.name}<br />
-              {typeof packet.sender === 'string' ? JSON.parse(packet.sender).email : packet.sender.email}<br />
-              {typeof packet.sender === 'string' ? JSON.parse(packet.sender).phone_number : packet.sender.phone_number}
+              {typeof packet.sender === "string"
+                ? JSON.parse(packet.sender).name
+                : packet.sender.name}
+              <br />
+              {typeof packet.sender === "string"
+                ? JSON.parse(packet.sender).email
+                : packet.sender.email}
+              <br />
+              {typeof packet.sender === "string"
+                ? JSON.parse(packet.sender).phone_number
+                : packet.sender.phone_number}
             </TableCell>
             <TableCell>
-              {typeof packet.receiver === 'string' ? JSON.parse(packet.receiver).name : packet.receiver.name}<br />
-              {typeof packet.receiver === 'string' ? JSON.parse(packet.receiver).email : packet.receiver.email}<br />
-              {typeof packet.receiver === 'string' ? JSON.parse(packet.receiver).phone_number : packet.receiver.phone_number}
+              {typeof packet.receiver === "string"
+                ? JSON.parse(packet.receiver).name
+                : packet.receiver.name}
+              <br />
+              {typeof packet.receiver === "string"
+                ? JSON.parse(packet.receiver).email
+                : packet.receiver.email}
+              <br />
+              {typeof packet.receiver === "string"
+                ? JSON.parse(packet.receiver).phone_number
+                : packet.receiver.phone_number}
             </TableCell>
             <TableCell>
               <Button onClick={() => onConfirmPickup(packet.id)}>

@@ -14,7 +14,7 @@ export interface Packet {
   weight: number;
   category: string;
   delivery_type: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
   collected_at?: string;
   origin_hub_confirmed_at?: string;

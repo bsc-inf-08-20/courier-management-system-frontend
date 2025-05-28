@@ -43,7 +43,7 @@ interface Packet {
   status: string;
   weight: number;
   category: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
   collected_at?: string;
 }

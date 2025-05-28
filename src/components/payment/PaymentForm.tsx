@@ -106,7 +106,7 @@ export default function PaymentForm() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-white/90 flex-shrink">
-                  Route Fee ({searchParams.get("origin")} →{" "}
+                  Route Fee ({searchParams.get("origin_city")} →{" "}
                   {searchParams.get("destination")})
                 </span>
                 <span className="font-medium">

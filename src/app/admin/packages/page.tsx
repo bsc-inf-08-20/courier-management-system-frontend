@@ -18,7 +18,7 @@ interface Packet {
   status: string;
   weight: number;
   category: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
 }
 
@@ -29,9 +29,12 @@ export default function PacketsPage() {
   const fetchPackets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/admin`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/admin`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       if (!response.ok) {
         throw new Error("Failed to fetch packets");
@@ -114,7 +117,7 @@ export default function PacketsPage() {
                   </TableCell>
                   <TableCell>{packet.weight}</TableCell>
                   <TableCell>{packet.category}</TableCell>
-                  <TableCell>{packet.origin_address}</TableCell>
+                  <TableCell>{packet.origin_city}</TableCell>
                   <TableCell>{packet.destination_address}</TableCell>
                 </TableRow>
               ))}

@@ -29,7 +29,7 @@ interface Packet {
   status: string;
   weight: number;
   category: string;
-  origin_address: string;
+  origin_city: string;
   destination_address: string;
   collected_at?: string | null;
   origin_hub_confirmed_at?: string | null;
@@ -85,9 +85,12 @@ const ReceivePacketsPage = () => {
       }
 
       try {
-        const adminRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const adminRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         if (!adminRes.ok) {
           const errorData = await adminRes.json();
           throw new Error(errorData.message || "Failed to fetch admin data");
@@ -226,7 +229,7 @@ const ReceivePacketsPage = () => {
                   <TableCell>{packet.id}</TableCell>
                   <TableCell>{packet.description || "N/A"}</TableCell>
                   <TableCell>{packet.weight || 0} kg</TableCell>
-                  <TableCell>{packet.origin_address || "N/A"}</TableCell>
+                  <TableCell>{packet.origin_city || "N/A"}</TableCell>
                   <TableCell>{formatDate(packet.dispatched_at)}</TableCell>
                   <TableCell>
                     {packet.assigned_vehicle?.assigned_driver ? (

@@ -1,7 +1,14 @@
 // PacketsTable.tsx
 import React, { useState, Dispatch, SetStateAction } from "react";
 import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -46,9 +53,15 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
 
   const getStatusBadge = (status: string) => {
     const statusMap: Record<string, { text: string; color: string }> = {
-      at_origin_hub: { text: "Ready for Dispatch", color: "bg-amber-100 text-amber-800" },
+      at_origin_hub: {
+        text: "Ready for Dispatch",
+        color: "bg-amber-100 text-amber-800",
+      },
     };
-    const statusInfo = statusMap[status] || { text: status, color: "bg-gray-100 text-gray-800" };
+    const statusInfo = statusMap[status] || {
+      text: status,
+      color: "bg-gray-100 text-gray-800",
+    };
     return <Badge className={statusInfo.color}>{statusInfo.text}</Badge>;
   };
 
@@ -65,14 +78,17 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
     }
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-from-vehicle`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ packetId }),
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/unassign-from-vehicle`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ packetId }),
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -85,9 +101,12 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
       );
 
       // Refresh vehicles
-      const vehicleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const vehicleRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!vehicleRes.ok) throw new Error("Failed to fetch updated vehicles");
       const updatedVehicles = await vehicleRes.json();
       setVehicles(updatedVehicles);
@@ -111,13 +130,15 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
     }
 
     try {
-      const endpoint = assigningPackets.length === 1
-        ? `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-to-vehicle`
-        : `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-multiple-to-vehicle`;
+      const endpoint =
+        assigningPackets.length === 1
+          ? `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-to-vehicle`
+          : `${process.env.NEXT_PUBLIC_BASE_URL}/packets/assign-multiple-to-vehicle`;
 
-      const body = assigningPackets.length === 1
-        ? { packetId: assigningPackets[0], vehicleId: selectedVehicle }
-        : { packetIds: assigningPackets, vehicleId: selectedVehicle };
+      const body =
+        assigningPackets.length === 1
+          ? { packetId: assigningPackets[0], vehicleId: selectedVehicle }
+          : { packetIds: assigningPackets, vehicleId: selectedVehicle };
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -134,18 +155,25 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
       }
 
       const updatedData = await response.json();
-      const updatedPackets = Array.isArray(updatedData) ? updatedData : [updatedData];
+      const updatedPackets = Array.isArray(updatedData)
+        ? updatedData
+        : [updatedData];
 
       setPackets((prev) =>
         prev.map((p) => {
-          const updatedPacket = updatedPackets.find((up: Packet) => up.id === p.id);
+          const updatedPacket = updatedPackets.find(
+            (up: Packet) => up.id === p.id
+          );
           return updatedPacket || p;
         })
       );
 
-      const vehicleRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const vehicleRes = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminCity}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       if (!vehicleRes.ok) throw new Error("Failed to fetch updated vehicles");
       const updatedVehicles = await vehicleRes.json();
       setVehicles(updatedVehicles);
@@ -176,8 +204,14 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
         <>
           {selectedPackets.length > 0 && (
             <div className="mb-4 p-3 bg-blue-50 rounded-md flex justify-between items-center">
-              <span>{selectedPackets.length} packet(s) selected (Total Weight: {totalSelectedWeight} kg)</span>
-              <Button onClick={() => handleAssignPackets(selectedPackets)} disabled={loading}>
+              <span>
+                {selectedPackets.length} packet(s) selected (Total Weight:{" "}
+                {totalSelectedWeight} kg)
+              </span>
+              <Button
+                onClick={() => handleAssignPackets(selectedPackets)}
+                disabled={loading}
+              >
                 Assign to Vehicle
               </Button>
             </div>
@@ -215,8 +249,8 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
                     <TableCell>{packet.description || "N/A"}</TableCell>
                     <TableCell>{packet.weight || 0} kg</TableCell>
                     <TableCell>{packet.category || "N/A"}</TableCell>
-                    <TableCell>{packet.origin_address || "N/A"}</TableCell>
-                    <TableCell>{packet.destination_address || "N/A"}</TableCell>
+                    <TableCell>{packet.origin_city || "N/A"}</TableCell>
+                    <TableCell>{packet.destination_hub || "N/A"}</TableCell>
                     <TableCell>{getStatusBadge(packet.status || "")}</TableCell>
                     <TableCell>
                       {packet.assigned_vehicle
@@ -262,7 +296,8 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
                 {assigningPackets.reduce((sum, pid) => {
                   const packet = packets.find((p) => p.id === pid);
                   return sum + (packet?.weight || 0);
-                }, 0)} kg
+                }, 0)}{" "}
+                kg
               </p>
               <div className="mt-4">
                 <h4 className="font-medium mb-2">Select Vehicle</h4>
@@ -270,7 +305,7 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
                   {vehicles.map((vehicle) => {
                     const packetDestination = packets
                       .find((p) => p.id === assigningPackets[0])
-                      ?.destination_address.split(',')
+                      ?.destination_hub?.split(",")
                       .pop()
                       ?.trim();
                     const totalWeight = assigningPackets.reduce((sum, pid) => {
@@ -279,23 +314,29 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
                     }, 0);
                     const newLoad = vehicle.current_load + totalWeight;
                     const canAssign =
-                      (!vehicle.destination_city || vehicle.destination_city === packetDestination) &&
+                      (!vehicle.destination_city ||
+                        vehicle.destination_city === packetDestination) &&
                       newLoad <= vehicle.capacity;
 
                     return (
                       <div
                         key={`vehicle-${vehicle.id}`}
                         className={`border p-3 rounded-md cursor-pointer flex justify-between items-center ${
-                          selectedVehicle === vehicle.id ? "border-blue-500 bg-blue-50" : "hover:bg-gray-50"
+                          selectedVehicle === vehicle.id
+                            ? "border-blue-500 bg-blue-50"
+                            : "hover:bg-gray-50"
                         } ${!canAssign ? "border-red-500 bg-red-50" : ""}`}
-                        onClick={() => canAssign && setSelectedVehicle(vehicle.id)}
+                        onClick={() =>
+                          canAssign && setSelectedVehicle(vehicle.id)
+                        }
                       >
                         <div>
                           <p className="font-medium">
                             {vehicle.make} {vehicle.model} ({vehicle.year})
                           </p>
                           <p className="text-sm text-gray-600">
-                            Capacity: {vehicle.capacity} kg, Current Load: {vehicle.current_load} kg
+                            Capacity: {vehicle.capacity} kg, Current Load:{" "}
+                            {vehicle.current_load} kg
                           </p>
                           <p className="text-sm text-gray-600">
                             Destination: {vehicle.destination_city || "Not set"}
@@ -317,7 +358,10 @@ const PacketsTable: React.FC<PacketsTableProps> = ({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmAssignPackets} disabled={!selectedVehicle}>
+            <AlertDialogAction
+              onClick={confirmAssignPackets}
+              disabled={!selectedVehicle}
+            >
               Assign
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -30,6 +30,12 @@ const HUB_LOCATIONS = [
   { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
   { name: "Lilongwe", coordinates: { lat: -13.9626, lng: 33.7741 } },
   { name: "Blantyre", coordinates: { lat: -15.7861, lng: 35.0058 } },
+  { name: "Karonga", coordinates: { lat: -9.9333, lng: 33.9333 } },
+{ name: "Zomba", coordinates: { lat: -15.3850, lng: 35.3180 } },
+  { name: "Mangochi", coordinates: { lat: -14.4667, lng: 35.2833 } },
+  { name: "Kasungu", coordinates: { lat: -13.0333, lng: 33.4833 } },
+  { name: "Salima", coordinates: { lat: -13.7667, lng: 34.5167 } },
+  { name: "Dedza", coordinates: { lat: -14.1667, lng: 34.3333 } },
 ];
 
 export default function CreatePacketPage() {
@@ -38,7 +44,7 @@ export default function CreatePacketPage() {
     weight: "",
     category: "",
     instructions: "",
-    origin_address: "",
+    origin_city: "",
     origin_coordinates: { lat: 0, lng: 0 },
     destination_address: "",
     destination_coordinates: { lat: 0, lng: 0 },
@@ -85,7 +91,7 @@ export default function CreatePacketPage() {
         const cityCoordinates = getCityCoordinates(data.city);
         setFormData((prev) => ({
           ...prev,
-          origin_address: data.city,
+          origin_city: data.city,
           origin_coordinates: cityCoordinates,
           destination_hub: data.city || "",
           destination_address: `${data.city}`,
@@ -248,7 +254,7 @@ export default function CreatePacketPage() {
           `PHONE: ${formData.sender.phone_number}\n\n` +
           `RECEIVER: ${formData.receiver.name}\n` +
           `PHONE: ${formData.receiver.phone_number}\n\n` +
-          `ORIGIN: ${formData.origin_address}\n` +
+          `ORIGIN: ${formData.origin_city}\n` +
           `DESTINATION: ${formData.destination_address}\n`
       );
       // ONLY THIS SECTION CHANGED (QR code format) ▲
@@ -261,7 +267,7 @@ export default function CreatePacketPage() {
         weight: "",
         category: "",
         instructions: "",
-        origin_address: adminCity,
+        origin_city: adminCity,
         origin_coordinates: getCityCoordinates(adminCity),
         destination_address:
           formData.delivery_type === "pickup" ? `${adminCity} Hub` : "",
@@ -613,15 +619,15 @@ export default function CreatePacketPage() {
 
               <div className="mb-4">
                 <Label
-                  htmlFor="origin_address"
+                  htmlFor="origin_city"
                   className="text-gray-700 font-medium"
                 >
                   Origin Address
                 </Label>
                 <Input
-                  id="origin_address"
-                  name="origin_address"
-                  value={formData.origin_address}
+                  id="origin_city"
+                  name="origin_city"
+                  value={formData.origin_city}
                   onChange={handleChange}
                   className="mt-1 border-gray-300 bg-gray-100 cursor-not-allowed"
                   disabled

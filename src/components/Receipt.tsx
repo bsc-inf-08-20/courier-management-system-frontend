@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,7 +25,7 @@ interface ReceiptProps {
       email: string;
       phone_number: string;
     };
-    origin_address: string;
+    origin_city: string;
     destination_address: string;
     delivery_type: string;
     created_at: string;
@@ -47,10 +47,10 @@ const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, receiptData }) => {
     const content = receiptRef.current;
     if (!content) return;
 
-    const printWindow = window.open('', '', 'height=600,width=800');
+    const printWindow = window.open("", "", "height=600,width=800");
     if (!printWindow) return;
 
-    printWindow.document.write('<html><head><title>Print Receipt</title>');
+    printWindow.document.write("<html><head><title>Print Receipt</title>");
     // Add styling
     printWindow.document.write(`
       <style>
@@ -63,9 +63,9 @@ const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, receiptData }) => {
         .total { font-weight: bold; font-size: 1.2em; margin-top: 10px; }
       </style>
     `);
-    printWindow.document.write('</head><body>');
+    printWindow.document.write("</head><body>");
     printWindow.document.write(content.innerHTML);
-    printWindow.document.write('</body></html>');
+    printWindow.document.write("</body></html>");
     printWindow.document.close();
 
     printWindow.setTimeout(() => {
@@ -74,7 +74,7 @@ const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, receiptData }) => {
     }, 250);
   };
 
-   return (
+  return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
@@ -86,8 +86,8 @@ const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, receiptData }) => {
             <p className="text-sm text-gray-500">
               Receipt Date: {new Date().toLocaleDateString()}
             </p>
-              <p className="text-sm text-gray-500">
-              Packet ID: {receiptData?.packetId || 'N/A'}
+            <p className="text-sm text-gray-500">
+              Packet ID: {receiptData?.packetId || "N/A"}
             </p>
           </div>
 
@@ -95,41 +95,50 @@ const Receipt: React.FC<ReceiptProps> = ({ isOpen, onClose, receiptData }) => {
           <div className="grid">
             <div className="section">
               <h3 className="font-bold mb-2">Sender Information</h3>
-              <p>Name: {receiptData?.sender?.name || 'N/A'}</p>
-              <p>Email: {receiptData?.sender?.email || 'N/A'}</p>
-              <p>Phone: {receiptData?.sender?.phone_number || 'N/A'}</p>
+              <p>Name: {receiptData?.sender?.name || "N/A"}</p>
+              <p>Email: {receiptData?.sender?.email || "N/A"}</p>
+              <p>Phone: {receiptData?.sender?.phone_number || "N/A"}</p>
             </div>
 
             <div className="section">
               <h3 className="font-bold mb-2">Receiver Information</h3>
-              <p>Name: {receiptData?.receiver?.name || 'N/A'}</p>
-              <p>Email: {receiptData?.receiver?.email || 'N/A'}</p>
-              <p>Phone: {receiptData?.receiver?.phone_number || 'N/A'}</p>
+              <p>Name: {receiptData?.receiver?.name || "N/A"}</p>
+              <p>Email: {receiptData?.receiver?.email || "N/A"}</p>
+              <p>Phone: {receiptData?.receiver?.phone_number || "N/A"}</p>
             </div>
           </div>
 
           <div className="section mt-4">
             <h3 className="font-bold mb-2">Package Details</h3>
-            <p>Description: {receiptData?.description || 'N/A'}</p>
-            <p>Category: {receiptData?.category || 'N/A'}</p>
+            <p>Description: {receiptData?.description || "N/A"}</p>
+            <p>Category: {receiptData?.category || "N/A"}</p>
             <p>Weight: {receiptData?.weight || 0} kg</p>
-            <p>Delivery Type: {receiptData?.delivery_type || 'N/A'}</p>
-            <p>From: {receiptData?.origin_address || 'N/A'}</p>
-            <p>To: {receiptData?.destination_address || 'N/A'}</p>
+            <p>Delivery Type: {receiptData?.delivery_type || "N/A"}</p>
+            <p>From: {receiptData?.origin_city || "N/A"}</p>
+            <p>To: {receiptData?.destination_address || "N/A"}</p>
           </div>
 
           <div className="price-breakdown">
             <h3 className="font-bold mb-2">Price Breakdown</h3>
-            <p>Base Price: MWK {receiptData?.price?.basePrice?.toLocaleString() || '0'}</p>
-            <p>Weight Fee: MWK {receiptData?.price?.weightFee?.toLocaleString() || '0'}</p>
+            <p>
+              Base Price: MWK{" "}
+              {receiptData?.price?.basePrice?.toLocaleString() || "0"}
+            </p>
+            <p>
+              Weight Fee: MWK{" "}
+              {receiptData?.price?.weightFee?.toLocaleString() || "0"}
+            </p>
             <div className="total">
-              Total Amount: MWK {receiptData?.price?.totalPrice?.toLocaleString() || '0'}
+              Total Amount: MWK{" "}
+              {receiptData?.price?.totalPrice?.toLocaleString() || "0"}
             </div>
           </div>
         </div>
         <div className="flex justify-end gap-4">
           <Button onClick={handlePrint}>Print Receipt</Button>
-          <Button onClick={onClose} variant="outline">Close</Button>
+          <Button onClick={onClose} variant="outline">
+            Close
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
