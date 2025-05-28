@@ -19,9 +19,10 @@ export interface Packet {
   collected_at?: string;
   origin_hub_confirmed_at?: string;
   dispatched_at?: string;
+  destination_hub?: string;
   destination_hub_confirmed_at?: string;
   out_for_delivery_at?: string;
-  delivered_at?: string;
+  delivered_at?: Date;
   received_at?: string;
   hub_confirmed_at?: string;
   confirmed_by_origin?: boolean;
@@ -34,6 +35,13 @@ export interface Packet {
     name: string;
     phone_number: string;
     address: string;
+    email: string;
+  };
+  sender: {
+    name: string;
+    phone_number: string;
+    address: string;
+    email: string;
   };
 }
 

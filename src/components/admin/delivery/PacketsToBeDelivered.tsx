@@ -101,7 +101,7 @@ const PacketsToBeDelivered: React.FC<PacketsToBeDeliveredProps> = ({
               <TableCell>{packet.receiver.name}</TableCell>
               <TableCell>{packet.receiver.phone_number}</TableCell>
               <TableCell>
-                {getStatusBadge(packet.status, packet.delivered_at)}
+                {getStatusBadge(packet.status, packet.delivered_at?.toString())}
               </TableCell>
               <TableCell>
                 {packet.assigned_delivery_agent ? (

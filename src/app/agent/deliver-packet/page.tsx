@@ -73,7 +73,7 @@ export default function AgentDeliveryPage() {
     setIsSignatureModalOpen(true);
   };
 
-  const handleConfirmDelivery = async () => {
+  const handleConfirmDelivery = async (): Promise<void> => {
     if (!currentPacketId || !signaturePadRef.current) return;
 
     const token = localStorage.getItem("token");
