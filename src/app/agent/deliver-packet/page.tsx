@@ -209,7 +209,7 @@ export default function AgentDeliveryPage() {
                       </td>
                     </tr>
                   ))
-                ) : (
+                ) : ( 
                   <tr>
                     <td colSpan={4} className="text-center py-6 text-gray-500 text-sm md:text-base">
                          No packets you have selected yet to deliver to the customers
