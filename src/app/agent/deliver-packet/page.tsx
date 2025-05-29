@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { MapPin, Check } from "lucide-react";
 import { toast } from "sonner";
-import { useEmail } from "@/contexts/EmailContext";
 import SignaturePad from "react-signature-canvas";
 import {
   Dialog,
@@ -37,6 +36,7 @@ export default function AgentDeliveryPage() {
   const [loading, setLoading] = useState(true);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [currentPacketId, setCurrentPacketId] = useState<number | null>(null);
+  const [nationalId, setNationalId] = useState<string>("");
   const signaturePadRef = useRef<SignaturePad>(null);
 
   // Fetch packets assigned to this agent
@@ -107,6 +107,7 @@ export default function AgentDeliveryPage() {
           },
           body: JSON.stringify({
             signature_base64: signatureBase64,
+            nationalId: nationalId, // Include nationalId
           }),
         }
       );
@@ -130,6 +131,7 @@ export default function AgentDeliveryPage() {
 
       toast.success("Package marked as delivered and confirmation email sent");
       setIsSignatureModalOpen(false);
+      setNationalId(""); // Clear the national ID after successful submission
     } catch (error) {
       console.error("Error marking as delivered:", error);
       toast.error("Failed to update delivery status");
@@ -268,6 +270,21 @@ export default function AgentDeliveryPage() {
                   className: "w-full h-64",
                   style: { border: "1px solid #e2e8f0" },
                 }}
+              />
+            </div>
+            <div className="mt-2">
+              <label
+                htmlFor="nationalId"
+                className="block text-sm font-medium text-gray-700"
+              >
+                National ID
+              </label>
+              <input
+                type="text"
+                id="nationalId"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={nationalId}
+                onChange={(e) => setNationalId(e.target.value)}
               />
             </div>
             <div className="flex justify-end gap-2">

@@ -21,6 +21,7 @@ export default function HubPickupPage() {
   const [adminCity, setAdminCity] = useState("");
   const [currentPacketId, setCurrentPacketId] = useState<number | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [nationalId, setNationalId] = useState<string>("");
   const signaturePadRef = useRef<SignaturePad>(null);
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export default function HubPickupPage() {
           },
           body: JSON.stringify({
             signature_base64: signatureBase64,
+            nationalId: nationalId, // Include nationalId
           }),
         }
       );
@@ -111,6 +113,7 @@ export default function HubPickupPage() {
 
       toast.success("Package marked as picked up and confirmation email sent");
       setIsSignatureModalOpen(false);
+      setNationalId(""); // Clear the national ID after successful submission
     } catch (error) {
       console.error("Error marking as picked up:", error);
       toast.error("Failed to update pickup status");
@@ -180,6 +183,21 @@ export default function HubPickupPage() {
                 className: "border rounded-lg w-full h-64",
               }}
             />
+            <div className="mt-2">
+              <label
+                htmlFor="nationalId"
+                className="block text-sm font-medium text-gray-700"
+              >
+                National ID
+              </label>
+              <input
+                type="text"
+                id="nationalId"
+                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                value={nationalId}
+                onChange={(e) => setNationalId(e.target.value)}
+              />
+            </div>
             <div className="mt-4 flex gap-2 justify-end">
               <Button
                 variant="outline"
