@@ -16,6 +16,8 @@ import {
 
 interface Packet {
   id: number;
+  trackingId: string;
+  description: string;
   destination_coordinates: {
     lat: number;
     lng: number;
@@ -176,7 +178,7 @@ export default function AgentDeliveryPage() {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-500">
-                    ID: #{packet.id}
+                    ID: #{packet.trackingId}
                   </span>
                   <span
                     className={`px-3 py-1 rounded-full text-sm ${
@@ -193,7 +195,7 @@ export default function AgentDeliveryPage() {
                   <div className=" items-center space-x-2">
                     <div>
                       <span className="capitalize font-bold">
-                        {packet.category}
+                        {packet.description}
                       </span>
                     </div>
                     <div>
