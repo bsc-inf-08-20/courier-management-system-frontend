@@ -185,7 +185,7 @@ export default function Home() {
               {
                 icon: Package,
                 title: "Instant Booking",
-                description: "Book your delivery in under 60 seconds with our AI-powered system",
+                description: "Book your delivery in under 60 seconds",
                 color: "from-blue-500 to-blue-600",
                 bgColor: "bg-blue-50"
               },
@@ -199,21 +199,21 @@ export default function Home() {
               {
                 icon: MapPin,
                 title: "Live Tracking",
-                description: "Watch your package move in real-time with GPS precision",
+                description: "Keep track of your package",
                 color: "from-purple-500 to-purple-600",
                 bgColor: "bg-purple-50"
               },
               {
                 icon: Zap,
                 title: "Lightning Speed",
-                description: "Same-day delivery across major cities in Malawi",
+                description: "Delivery across major cities in Malawi within 24 hours",
                 color: "from-yellow-500 to-orange-500",
                 bgColor: "bg-yellow-50"
               },
               {
                 icon: Shield,
                 title: "Full Insurance",
-                description: "Every package is insured up to MWK 500,000 at no extra cost",
+                description: "Every package is insured at no extra cost",
                 color: "from-red-500 to-pink-600",
                 bgColor: "bg-red-50"
               },
@@ -280,42 +280,71 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Enhanced Footer */}
-      <footer className="bg-gray-900 text-white py-12 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20" />
-        <div className="max-w-6xl mx-auto px-6 text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <h3 className="text-2xl font-bold mb-4 bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-              Courier Management Information System
-            </h3>
-            <p className="opacity-75 mb-6">
-              Revolutionizing package delivery across Malawi with cutting-edge technology
-            </p>
-            <div className="flex justify-center space-x-6 mb-8">
-              <div className="flex items-center space-x-2">
-                <Shield className="h-4 w-4 text-green-400" />
-                <span className="text-sm">Secure & Reliable</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-blue-400" />
-                <span className="text-sm">Always On Time</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="text-sm">5-Star Rated</span>
-              </div>
+        {/* Enhanced Footer*/}
+        <footer className="bg-gray-900 text-white pt-12 pb-6 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-900/20 to-purple-900/20" />
+
+          <div className="relative z-10 max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+            {/* Quick Links */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-yellow-400">Quick Links</h4>
+              <ul className="space-y-2 text-sm opacity-80">
+                <li><Link href="/customer/booking">Book a Shipment</Link></li>
+                <li><Link href="/customer/tracking">Track Shipment</Link></li>
+                <li><Link href="#">Shipping Services</Link></li>
+                <li><Link href="#">Help Center</Link></li>
+              </ul>
             </div>
-            <p className="opacity-60">
-              © 2025 Courier Management Information System. All rights reserved.
-            </p>
-          </motion.div>
-        </div>
-      </footer>
+
+            {/* Services */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-yellow-400">Our Services</h4>
+              <ul className="space-y-2 text-sm opacity-80">
+                <li><Link href="#">Express Delivery</Link></li>
+                <li><Link href="#">Same-Day Service</Link></li>
+                <li><Link href="#">Freight Solutions</Link></li>
+                <li><Link href="#">E-commerce Shipping</Link></li>
+              </ul>
+            </div>
+
+            {/* Company Info */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-yellow-400">Company</h4>
+              <ul className="space-y-2 text-sm opacity-80">
+                <li><Link href="#">About Us</Link></li>
+                <li><Link href="#">Careers</Link></li>
+                <li><Link href="#">News & Media</Link></li>
+                <li><Link href="#">Contact</Link></li>
+              </ul>
+            </div>
+
+            {/* Connect */}
+            <div>
+              <h4 className="text-lg font-semibold mb-4 text-yellow-400">Connect with Us</h4>
+              <div className="flex space-x-4 mb-4">
+                <Link href="#" aria-label="Facebook" className="hover:text-yellow-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22 12..."/></svg>
+                </Link>
+                <Link href="#" aria-label="Twitter" className="hover:text-yellow-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M22.46..."/></svg>
+                </Link>
+                <Link href="#" aria-label="Instagram" className="hover:text-yellow-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M7.75..."/></svg>
+                </Link>
+                <Link href="#" aria-label="LinkedIn" className="hover:text-yellow-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M4.98..."/></svg>
+                </Link>
+              </div>
+              <div className="text-sm opacity-80">Language: English</div>
+              <div className="text-sm opacity-80">Country: Malawi</div>
+            </div>
+          </div>
+
+          <div className="border-t border-gray-700 pt-6 text-center text-sm opacity-60">
+            <p>© 2025 Courier Management Information System. All rights reserved.</p>
+          </div>
+        </footer>
+
     </div>
   );
 }
