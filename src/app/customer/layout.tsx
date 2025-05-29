@@ -36,7 +36,7 @@ const navItems = [
   {
     href: "/customer/tracking",
     icon: Package,
-    title: "Truck Packets",
+    title: "Track Packets",
   },
   {
     href: "/customer/history",

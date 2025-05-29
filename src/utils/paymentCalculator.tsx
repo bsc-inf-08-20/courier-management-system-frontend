@@ -1,6 +1,6 @@
 // src/utils/pricingCalculator.ts
-export const BASE_PICKUP_FEE = 3000;
-export const HOME_DELIVERY_FEE = 3000;
+export const BASE_PICKUP_FEE = 2500;
+export const HOME_DELIVERY_FEE = 2500;
 
 const ROUTE_PRICES: Record<string, Record<string, number>> = {
   Lilongwe: {

@@ -25,13 +25,15 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Loader } from "@googlemaps/js-api-loader";
 import { MapComponent } from "@/components/MapComponent";
+import { calculateHubDeliveryFee } from "@/lib/pricing";
+import jsPDF from "jspdf";
 
 const HUB_LOCATIONS = [
   { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
   { name: "Lilongwe", coordinates: { lat: -13.9626, lng: 33.7741 } },
   { name: "Blantyre", coordinates: { lat: -15.7861, lng: 35.0058 } },
   { name: "Karonga", coordinates: { lat: -9.9333, lng: 33.9333 } },
-{ name: "Zomba", coordinates: { lat: -15.3850, lng: 35.3180 } },
+  { name: "Zomba", coordinates: { lat: -15.385, lng: 35.318 } },
   { name: "Mangochi", coordinates: { lat: -14.4667, lng: 35.2833 } },
   { name: "Kasungu", coordinates: { lat: -13.0333, lng: 33.4833 } },
   { name: "Salima", coordinates: { lat: -13.7667, lng: 34.5167 } },
@@ -39,6 +41,7 @@ const HUB_LOCATIONS = [
 ];
 
 export default function CreatePacketPage() {
+  const [responseData, setResponseData] = useState<any>(null);
   const [formData, setFormData] = useState({
     description: "",
     weight: "",
@@ -69,6 +72,7 @@ export default function CreatePacketPage() {
   const [, setMarker] = useState<google.maps.Marker | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const qrCodeRef = useRef<HTMLDivElement>(null);
+  const [packetSummary, setPacketSummary] = useState<any>(null);
 
   useAuth("ADMIN");
 
@@ -240,13 +244,31 @@ export default function CreatePacketPage() {
         const errorData = await res.json();
         throw new Error(errorData.message || "Failed to create packet");
       }
+      const data = await res.json();
+      setResponseData(data);
 
-      const responseData = await res.json();
-      toast.success("Packet created successfully");
+      // Calculate total before reset
+      const totalAmount = calculateTotalAmount();
 
-      // ONLY THIS SECTION CHANGED (QR code format) ▼
+      // Store all relevant data for receipt/QR
+      const summary = {
+        trackingId: data.trackingId,
+        description: formData.description,
+        weight: formData.weight,
+        category: formData.category,
+        sender: { ...formData.sender },
+        receiver: { ...formData.receiver },
+        origin_city: formData.origin_city,
+        destination_hub: formData.destination_hub,
+        delivery_type: formData.delivery_type,
+        totalAmount,
+        created_at: new Date().toLocaleString(),
+      };
+      setPacketSummary(summary);
+
+      // Generate QR code data with all the form data
       setQrCodeData(
-        `PACKET ID: ${responseData.id}\n` +
+        `PACKET ID: ${data.trackingId}\n` +
           `DESCRIPTION: ${formData.description}\n` +
           `WEIGHT: ${formData.weight} kg\n` +
           `CATEGORY: ${formData.category}\n\n` +
@@ -255,13 +277,13 @@ export default function CreatePacketPage() {
           `RECEIVER: ${formData.receiver.name}\n` +
           `PHONE: ${formData.receiver.phone_number}\n\n` +
           `ORIGIN: ${formData.origin_city}\n` +
-          `DESTINATION: ${formData.destination_address}\n`
+          `DESTINATION: ${formData.destination_hub}\n\n` +
+          `TOTAL AMOUNT: MWK ${totalAmount}`
       );
-      // ONLY THIS SECTION CHANGED (QR code format) ▲
 
       setQrCodeOpen(true);
 
-      // Reset form (unchanged)
+      // Now reset the form
       setFormData({
         description: "",
         weight: "",
@@ -280,6 +302,7 @@ export default function CreatePacketPage() {
         sender: { name: "", email: "", phone_number: "" },
         receiver: { name: "", email: "", phone_number: "" },
       });
+      toast.success("Packet created successfully");
     } catch (error: unknown) {
       toast.error(
         error instanceof Error ? error.message : "Something went wrong"
@@ -348,6 +371,150 @@ export default function CreatePacketPage() {
     }
   };
 
+  const calculateTotalAmount = () => {
+    if (
+      !formData.origin_city ||
+      !formData.destination_hub ||
+      !formData.weight
+    ) {
+      return 0;
+    }
+
+    return calculateHubDeliveryFee(
+      formData.origin_city,
+      formData.destination_hub,
+      formData.delivery_type,
+      parseFloat(formData.weight)
+    );
+  };
+
+  const handleDownloadReceipt = () => {
+    if (!packetSummary) return;
+
+    const receiptContent = `
+COURIER MANAGEMENT SYSTEM
+-------------------------
+PACKET RECEIPT
+Date: ${packetSummary.created_at}
+
+Packet Details:
+Tracking ID: ${packetSummary.trackingId}
+Description: ${packetSummary.description}
+Weight: ${packetSummary.weight} kg
+Category: ${packetSummary.category}
+
+Sender Details:
+Name: ${packetSummary.sender.name}
+Email: ${packetSummary.sender.email}
+Phone: ${packetSummary.sender.phone_number}
+
+Receiver Details:
+Name: ${packetSummary.receiver.name}
+Email: ${packetSummary.receiver.email}
+Phone: ${packetSummary.receiver.phone_number}
+
+Location Details:
+Origin: ${packetSummary.origin_city}
+Destination: ${packetSummary.destination_hub}
+Delivery Type: ${packetSummary.delivery_type === "delivery" ? "Home Delivery" : "Hub Pickup"}
+
+PAYMENT DETAILS
+-------------------------
+Total Amount: MWK ${packetSummary.totalAmount}
+
+Thank you for using our service!
+`;
+
+    const blob = new Blob([receiptContent], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `packet-receipt-${Date.now()}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleDownloadPdfReceipt = () => {
+    if (!packetSummary) return;
+
+    const doc = new jsPDF();
+
+    // Add company header
+    doc.setFontSize(20);
+    doc.text("Courier Management System", 105, 20, { align: "center" });
+
+    // Add receipt title
+    doc.setFontSize(16);
+    doc.text("PACKET RECEIPT", 105, 30, { align: "center" });
+
+    // Add current date and time
+    doc.setFontSize(10);
+    doc.text(`Date: ${packetSummary.created_at}`, 20, 40);
+
+    // Add packet details
+    doc.setFontSize(12);
+    doc.text("Packet Details:", 20, 50);
+    doc.setFontSize(10);
+    doc.text(`Tracking ID: ${packetSummary.trackingId || 'N/A'}`, 25, 60);
+    doc.text(`Description: ${packetSummary.description}`, 25, 70);
+    doc.text(`Weight: ${packetSummary.weight} kg`, 25, 80);
+    doc.text(`Category: ${packetSummary.category}`, 25, 90);
+
+    // Add sender details
+    doc.setFontSize(12);
+    doc.text("Sender Details:", 20, 105);
+    doc.setFontSize(10);
+    doc.text(`Name: ${packetSummary.sender.name}`, 25, 115);
+    doc.text(`Email: ${packetSummary.sender.email}`, 25, 125);
+    doc.text(`Phone: ${packetSummary.sender.phone_number}`, 25, 135);
+
+    // Add receiver details
+    doc.setFontSize(12);
+    doc.text("Receiver Details:", 20, 150);
+    doc.setFontSize(10);
+    doc.text(`Name: ${packetSummary.receiver.name}`, 25, 160);
+    doc.text(`Email: ${packetSummary.receiver.email}`, 25, 170);
+    doc.text(`Phone: ${packetSummary.receiver.phone_number}`, 25, 180);
+
+    // Add location details
+    doc.setFontSize(12);
+    doc.text("Location Details:", 20, 195);
+    doc.setFontSize(10);
+    doc.text(`Origin: ${packetSummary.origin_city}`, 25, 205);
+    doc.text(`Destination: ${packetSummary.destination_hub}`, 25, 215);
+    doc.text(
+      `Delivery Type: ${
+        packetSummary.delivery_type === "delivery" ? "Home Delivery" : "Hub Pickup"
+      }`,
+      25,
+      225
+    );
+
+    // Add payment breakdown
+    doc.setFontSize(12);
+    doc.text("Payment Details:", 20, 240);
+    doc.setFontSize(10);
+    doc.text(`Total Amount: MWK ${packetSummary.totalAmount}`, 25, 250);
+
+    // Add footer
+    doc.setFontSize(8);
+    doc.setFont("helvetica", "normal");
+    const currentDate = new Date().toISOString().split("T")[0];
+    doc.text(
+      `Generated on ${currentDate} by ${
+        process.env.NEXT_PUBLIC_USER_LOGIN || "bsc-inf-08-20"
+      }`,
+      105,
+      295,
+      { align: "center" }
+    );
+
+    // Save the PDF
+    doc.save(`packet-receipt-${Date.now()}.pdf`);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-100 p-6">
       <Dialog open={qrCodeOpen} onOpenChange={setQrCodeOpen}>
@@ -362,21 +529,34 @@ export default function CreatePacketPage() {
             >
               <QRCodeSVG value={qrCodeData || ""} size={200} />
             </div>
-            <p className="text-sm text-gray-500 text-center">
-              Print or download this QR code and attach it to the packet for
-              tracking purposes.
-            </p>
-            <Button
-              onClick={handleDownloadQrCode}
-              variant="outline"
-              className="w-full"
-            >
-              Download QR Code
-            </Button>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-gray-900">
+                Total Amount: MWK {packetSummary?.totalAmount || 0}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Print or download this QR code and attach it to the packet for
+                tracking purposes.
+              </p>
+            </div>
+            <div className="flex gap-3 w-full">
+              <Button
+                onClick={handleDownloadQrCode}
+                variant="outline"
+                className="flex-1"
+              >
+                Download QR Code
+              </Button>
+              <Button
+                onClick={handleDownloadPdfReceipt}
+                variant="outline"
+                className="flex-1"
+              >
+                Download PDF Receipt
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
-
       <Card className="max-w-6xl mx-auto shadow-lg bg-white rounded-xl overflow-hidden">
         <CardHeader className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-6">
           <CardTitle className="text-2xl font-bold">
