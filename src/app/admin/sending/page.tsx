@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -41,7 +42,7 @@ const HUB_LOCATIONS = [
 ];
 
 export default function CreatePacketPage() {
-  const [responseData, setResponseData] = useState<any>(null);
+  const [, setResponseData] = useState<any>(null);
   const [formData, setFormData] = useState({
     description: "",
     weight: "",
@@ -284,6 +285,7 @@ export default function CreatePacketPage() {
         );
         toast.success("Receipt sent to both sender and receiver!");
       } catch (err) {
+        console.log("Error sending receipt:", err);
         toast.error("Could not send receipt to emails.");
       }
 
@@ -409,57 +411,57 @@ export default function CreatePacketPage() {
     );
   };
 
-  const handleDownloadReceipt = () => {
-    if (!packetSummary) return;
+//   const handleDownloadReceipt = () => {
+//     if (!packetSummary) return;
 
-    const receiptContent = `
-COURIER MANAGEMENT SYSTEM
--------------------------
-PACKET RECEIPT
-Date: ${packetSummary.created_at}
+//     const receiptContent = `
+// COURIER MANAGEMENT SYSTEM
+// -------------------------
+// PACKET RECEIPT
+// Date: ${packetSummary.created_at}
 
-Packet Details:
-Tracking ID: ${packetSummary.trackingId}
-Description: ${packetSummary.description}
-Weight: ${packetSummary.weight} kg
-Category: ${packetSummary.category}
+// Packet Details:
+// Tracking ID: ${packetSummary.trackingId}
+// Description: ${packetSummary.description}
+// Weight: ${packetSummary.weight} kg
+// Category: ${packetSummary.category}
 
-Sender Details:
-Name: ${packetSummary.sender.name}
-Email: ${packetSummary.sender.email}
-Phone: ${packetSummary.sender.phone_number}
+// Sender Details:
+// Name: ${packetSummary.sender.name}
+// Email: ${packetSummary.sender.email}
+// Phone: ${packetSummary.sender.phone_number}
 
-Receiver Details:
-Name: ${packetSummary.receiver.name}
-Email: ${packetSummary.receiver.email}
-Phone: ${packetSummary.receiver.phone_number}
+// Receiver Details:
+// Name: ${packetSummary.receiver.name}
+// Email: ${packetSummary.receiver.email}
+// Phone: ${packetSummary.receiver.phone_number}
 
-Location Details:
-Origin: ${packetSummary.origin_city}
-Destination: ${packetSummary.destination_hub}
-Delivery Type: ${
-      packetSummary.delivery_type === "delivery"
-        ? "Home Delivery"
-        : "Hub Pickup"
-    }
+// Location Details:
+// Origin: ${packetSummary.origin_city}
+// Destination: ${packetSummary.destination_hub}
+// Delivery Type: ${
+//       packetSummary.delivery_type === "delivery"
+//         ? "Home Delivery"
+//         : "Hub Pickup"
+//     }
 
-PAYMENT DETAILS
--------------------------
-Total Amount: MWK ${packetSummary.totalAmount}
+// PAYMENT DETAILS
+// -------------------------
+// Total Amount: MWK ${packetSummary.totalAmount}
 
-Thank you for using our service!
-`;
+// Thank you for using our service!
+// `;
 
-    const blob = new Blob([receiptContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `packet-receipt-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+//     const blob = new Blob([receiptContent], { type: "text/plain" });
+//     const url = URL.createObjectURL(blob);
+//     const a = document.createElement("a");
+//     a.href = url;
+//     a.download = `packet-receipt-${Date.now()}.txt`;
+//     document.body.appendChild(a);
+//     a.click();
+//     document.body.removeChild(a);
+//     URL.revokeObjectURL(url);
+//   };
 
   const handleDownloadPdfReceipt = () => {
     if (!packetSummary) return;
