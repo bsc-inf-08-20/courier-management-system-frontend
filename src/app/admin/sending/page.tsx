@@ -82,7 +82,7 @@ export default function CreatePacketPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/users/me", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -232,7 +232,7 @@ export default function CreatePacketPage() {
         status: "at_origin_hub",
       };
 
-      const res = await fetch("http://localhost:3001/packets", {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
