@@ -20,13 +20,12 @@ interface Packet {
   assigned_pickup_agent?: { user_id: number };
   assigned_delivery_agent?: { user_id: number };
   hasCoordinates?: boolean;
-  [key: string]: any;
+  [key: string]: number | string | boolean | object | null | undefined;
 }
 
 type AgentTrackingViewProps = {
   apiKey: string;
-  arrivalThresholdMeters: number;
-  agentId: number;
+  agentId: number;  // Change from 'any' to number
   mode: "collect" | "deliver";
 };
 
@@ -73,15 +72,14 @@ const processPackets = (packets: Packet[], coordinateField: string) => {
   return packets.map(packet => ({
     ...packet,
     hasCoordinates: Boolean(
-      packet[coordinateField]?.lat && 
-      packet[coordinateField]?.lng
+      (packet[coordinateField] as { lat?: number; lng?: number })?.lat && 
+      (packet[coordinateField] as { lat?: number; lng?: number })?.lng
     )
   }));
 };
 
 const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
   apiKey,
-  arrivalThresholdMeters = 100,
   agentId,
   mode,
 }) => {
@@ -165,7 +163,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         console.log("[Debug] Making request for agent:", agentId);
         
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3001'}${endpoint}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -205,7 +203,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
     };
 
     fetchPackets();
-  }, [agentId, mode]);
+  }, [agentId, mode, coordinateField, endpoint]);
 
   // Track agent's real-time location
   useEffect(() => {
@@ -232,6 +230,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         setError(null); // Clear any previous errors
       },
       (error) => {
+        console.error("[AgentTrackingView] Geolocation error:", error);
         const errorMessage = "Unable to retrieve your location. Please enable location services.";
         toast.error(errorMessage, {
           autoClose: 5000
@@ -283,11 +282,6 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       selectedPacket[coordinateField]
     ) {
       const directionsService = new window.google.maps.DirectionsService();
-      interface TravelInfo {
-        distance: string;
-        duration: string;
-      }
-
       interface DirectionsLeg {
         distance?: { text: string };
         duration?: { text: string };
@@ -359,6 +353,9 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
     if (!mapRef.current) return;
 
     if (agentLocation && selectedPacket?.[coordinateField]) {
+      // Check if agent has arrived at the packet location
+      checkArrival(agentLocation, selectedPacket[coordinateField]!);
+      
       // Fit both agent and packet in view
       const bounds = new window.google.maps.LatLngBounds();
       bounds.extend(agentLocation);
@@ -373,7 +370,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
       mapRef.current.panTo(agentLocation);
       mapRef.current.setZoom(15);
     }
-  }, [agentLocation, selectedPacket, coordinateField]);
+  }, [agentLocation, selectedPacket, coordinateField, checkArrival]); // Add checkArrival to dependencies
 
   useEffect(() => {
     console.log({
@@ -474,7 +471,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
         <LoadScript 
           googleMapsApiKey={apiKey}
           onLoad={() => setIsGoogleMapsLoaded(true)}
-          onError={(error) => {
+          onError={(error: Error) => {
             console.error("Google Maps loading error:", error);
             setError("Failed to load Google Maps");
           }}
@@ -546,7 +543,7 @@ const AgentTrackingView: React.FC<AgentTrackingViewProps> = ({
 
       {hasArrived && (
         <div className="fixed bottom-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg animate-bounce">
-          <h3 className="font-bold">You've Arrived! 🎉</h3>
+          <h3 className="font-bold">You&apos;ve Arrived! 🎉</h3>
           <p>You are at the packet location</p>
         </div>
       )}

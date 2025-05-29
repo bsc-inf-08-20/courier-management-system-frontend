@@ -51,7 +51,7 @@ interface Packet {
 
 interface PickupRequest {
   id: number;
-  pickup_address: string;
+  pickup_city: string;
   destination_address: string;
   status: string;
   created_at: string;
@@ -126,7 +126,7 @@ const UnassignedRequests = ({
                   )
                 }
               >
-                <TableCell>{request.pickup_address}</TableCell>
+                <TableCell>{request.pickup_city}</TableCell>
                 <TableCell>{request.destination_address}</TableCell>
                 <TableCell>
                   {request.customer.name} <br />
@@ -230,14 +230,17 @@ const BookPickupRequestsPage = () => {
 
     const fetchData = async () => {
       try {
-        const adminRes = await fetch("http://localhost:3001/users/me", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const adminRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         const adminData = await adminRes.json();
         setAdminCity(adminData.city);
 
         const agentsRes = await fetch(
-          `http://localhost:3001/users/agents?city=${adminData.city}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/agents?city=${adminData.city}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -255,7 +258,7 @@ const BookPickupRequestsPage = () => {
         }
 
         const requestsRes = await fetch(
-          `http://localhost:3001/pickup/requests?city=${adminData.city}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/requests?city=${adminData.city}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -317,8 +320,9 @@ const BookPickupRequestsPage = () => {
     const token = localStorage.getItem("token");
 
     try {
+      // First assign the agent
       const res = await fetch(
-        `http://localhost:3001/pickup/${requestId}/assign`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/${requestId}/assign`,
         {
           method: "PATCH",
           headers: {
@@ -330,7 +334,20 @@ const BookPickupRequestsPage = () => {
       );
 
       if (res.ok) {
-        toast.success("Agent assigned successfully.");
+        // If assignment successful, send notification
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/pickup-assignment`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ pickupRequestId: requestId }),
+          }
+        );
+
+        toast.success("Agent assigned and notified successfully.");
         const updatedRequests = requests.map((req) =>
           req.id === requestId
             ? {
@@ -360,7 +377,7 @@ const BookPickupRequestsPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/pickup/${agentToRemove}/unassign`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/${agentToRemove}/unassign`,
         {
           method: "PATCH",
           headers: {
@@ -406,7 +423,7 @@ const BookPickupRequestsPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/pickup/${confirmHubArrivalId}/deliver`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/${confirmHubArrivalId}/deliver`,
         {
           method: "PATCH",
           headers: {
@@ -471,7 +488,7 @@ const BookPickupRequestsPage = () => {
   return (
     <div className="p-6 w-full">
       <h2 className="text-2xl font-bold mb-4 text-center">
-        Book Pickup Requests ({adminCity})
+        Pickup Requests ({adminCity})
       </h2>
 
       <div className="flex justify-center gap-4 mb-6">
@@ -526,7 +543,7 @@ const BookPickupRequestsPage = () => {
           <TableBody>
             {filteredRequests.map((request) => (
               <TableRow key={request.id} className="hover:bg-gray-100">
-                <TableCell>{request.pickup_address}</TableCell>
+                <TableCell>{request.pickup_city}</TableCell>
                 <TableCell>{request.destination_address}</TableCell>
                 <TableCell>
                   {request.customer.name} <br />

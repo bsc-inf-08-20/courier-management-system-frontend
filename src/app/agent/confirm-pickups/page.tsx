@@ -1,4 +1,4 @@
- "use client";
+"use client";
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -76,14 +76,18 @@ function getErrorMessage(error: unknown): string {
 const AgentPickupPage = () => {
   const [requests, setRequests] = useState<PickupRequest[]>([]);
   const [loading, setLoading] = useState(false);
-  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(null);
+  const [confirmCollectionId, setConfirmCollectionId] = useState<number | null>(
+    null
+  );
   const [weightDialogOpen, setWeightDialogOpen] = useState<number | null>(null);
   const [newWeight, setNewWeight] = useState<number | null>(null);
   const [editingWeightId, setEditingWeightId] = useState<number | null>(null);
   const [editingWeightValue, setEditingWeightValue] = useState<number>(0);
   const [agentCity, setAgentCity] = useState<string>("");
   const [agentId, setAgentId] = useState<number | null>(null);
-  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(null);
+  const [confirmCollectedId, setConfirmCollectedId] = useState<number | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchAgentData = async () => {
@@ -97,9 +101,12 @@ const AgentPickupPage = () => {
       setLoading(true);
       try {
         // Fetch agent info
-        const agentRes = await fetch("http://localhost:3001/users/me-data", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const agentRes = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         if (!agentRes.ok) {
           const errorData = await agentRes.json();
@@ -112,7 +119,7 @@ const AgentPickupPage = () => {
 
         // Fetch requests with valid agentId
         const requestsRes = await fetch(
-          `http://localhost:3001/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/requests/agent?status=assigned&agentId=${agentData.user_id}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
 
@@ -155,7 +162,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${packetId}/weight`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${packetId}/weight`,
         {
           method: "PATCH",
           headers: {
@@ -212,7 +219,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${pickupId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {
@@ -258,6 +265,15 @@ const AgentPickupPage = () => {
   };
 
   const handleMarkAsCollected = async (pickupId: number) => {
+    // Find the request and get the packet ID
+    const request = requests.find((req) => req.id === pickupId);
+    if (!request) {
+      toast.error("Request not found");
+      return;
+    }
+
+    const packetId = request.packet.id;
+
     if (!agentId) {
       toast.error("Agent ID not found");
       return;
@@ -273,7 +289,7 @@ const AgentPickupPage = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3001/packets/${pickupId}/agent-confirm`,
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${packetId}/agent-confirm`,
         {
           method: "PATCH",
           headers: {
@@ -394,11 +410,7 @@ const AgentPickupPage = () => {
                     </Button>
                   )}
                   {request.packet.status === "collected" ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled
-                    >
+                    <Button size="sm" variant="outline" disabled>
                       Collected
                     </Button>
                   ) : (
@@ -433,7 +445,9 @@ const AgentPickupPage = () => {
               type="number"
               placeholder="Enter weight in kg"
               value={editingWeightValue}
-              onChange={(e) => setEditingWeightValue(parseFloat(e.target.value))}
+              onChange={(e) =>
+                setEditingWeightValue(parseFloat(e.target.value))
+              }
               min="0.1"
               step="0.1"
             />

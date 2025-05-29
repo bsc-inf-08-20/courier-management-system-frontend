@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, Truck, Package, MapPin } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 
 interface StatusItem {

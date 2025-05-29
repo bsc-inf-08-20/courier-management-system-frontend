@@ -27,7 +27,7 @@ export default function NotFound() {
             Page Not Found
           </h2>
           <p className="text-gray-500 max-w-md mx-auto">
-            Sorry, we couldn't find the page you're looking for. It might have
+            Sorry, we couldn&apos;t find the page you&apos;re looking for. It might have
             been moved or deleted.
           </p>
         </div>

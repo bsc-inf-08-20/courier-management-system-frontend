@@ -27,7 +27,7 @@ const AgentPage = () => {
 
     try {
       // Send the data to the backend
-      const response = await fetch("http://localhost:3001/agent-confirm-pickup/confirm", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/agent-confirm-pickup/confirm`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -46,7 +46,7 @@ const AgentPage = () => {
         alert(" Failed to send information. Please check your input and try again.");
       }
     } catch (error) {
-      alert(" Something went wrong. Please try again.");
+      alert(" Something went wrong. Please try again." + error);
     }
   };
 

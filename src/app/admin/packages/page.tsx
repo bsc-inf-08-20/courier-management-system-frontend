@@ -29,7 +29,7 @@ export default function PacketsPage() {
   const fetchPackets = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch("http://localhost:3001/packets/admin", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/admin`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link"; // Import Link for navigation
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,10 +33,11 @@ export default function AgentLoginPage() {
     try {
       await login(email, password, "AGENT");
       toast.success("Welcome back, Agent!");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      setError(error.message || "Invalid credentials");
-      toast.error(error.message || "Login failed");
+    } catch (err: unknown) {
+      console.error("Login error:", err);
+      const errorMessage = err instanceof Error ? err.message : "Invalid credentials";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -121,7 +122,7 @@ export default function AgentLoginPage() {
 
           {/* Link to agent application form */}
           <p className="text-center text-sm text-gray-600 mt-4">
-            Don't have an agent account?{" "}
+            Don&apos;t have an agent account?{" "}
             <Link
               href="/agent-auth/registration"
               className="text-blue-600 font-semibold hover:underline"

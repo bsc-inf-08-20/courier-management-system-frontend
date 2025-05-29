@@ -65,7 +65,7 @@ export default function SignupForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:3001/users", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

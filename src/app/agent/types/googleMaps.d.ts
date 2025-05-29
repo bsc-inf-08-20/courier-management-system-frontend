@@ -5,6 +5,7 @@ declare global {
       google: typeof google;
     }
   
+    // eslint-disable-next-line no-var
     var google: typeof google;
   }
   

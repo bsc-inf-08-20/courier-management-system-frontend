@@ -8,6 +8,9 @@ export default function AgentTrackingPage() {
   const { decodedToken, isLoading } = useAuth("AGENT");
   const [tab, setTab] = useState<"collect" | "deliver">("collect");
 
+  // Convert agentId to number explicitly
+  const agentId = decodedToken?.user_id ? Number(decodedToken.user_id) : undefined;
+
   useEffect(() => {
     if (decodedToken) {
       console.log("Decoded Token:", decodedToken);
@@ -51,7 +54,6 @@ export default function AgentTrackingPage() {
     );
   }
 
-  const agentId = decodedToken?.user_id;
   if (!agentId) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -92,7 +94,6 @@ export default function AgentTrackingPage() {
             <AgentTrackingView
               agentId={agentId}
               apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-              arrivalThresholdMeters={100}
               mode="collect"
             />
           )}
@@ -100,7 +101,6 @@ export default function AgentTrackingPage() {
             <AgentTrackingView
               agentId={agentId}
               apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ""}
-              arrivalThresholdMeters={100}
               mode="deliver"
             />
           )}

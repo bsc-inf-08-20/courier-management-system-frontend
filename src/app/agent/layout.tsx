@@ -16,8 +16,6 @@ import {
   NewspaperIcon,
   SettingsIcon,
   UserIcon,
-  TrainTrackIcon,
-  TruckIcon,
 } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,12 +25,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import AuthGuard from "@/components/AuthGuard";
-import Dashboard from "./desiplaygraphs/page";
-import Tracking from "../admin/tracking/page";
-import { map } from "leaflet";
 
 export default function AgentLayout({
   children,
@@ -49,7 +43,7 @@ export default function AgentLayout({
   const userData = {
     name: decodedToken?.name || "Agent",
     email: decodedToken?.email || "agent@example.com",
-    initials: decodedToken?.name
+    initials: typeof decodedToken?.name === 'string'
       ? decodedToken.name
           .split(" ")
           .map((n: string) => n[0])
@@ -101,10 +95,10 @@ export default function AgentLayout({
 
     { href: "/agent/notification", icon: Bell, title: "Notifications" },
 
-    { href: "/agent/profile", icon: UserIcon, title: "profile" },
 
     { href: "/agent/settings", icon: SettingsIcon, title: "settings" },
 
+    // { href: "/agent/profile", icon: UserIcon, title: "profile" },
     //{ href: "/agent/Agent", icon:User, title: "Agent" },
     // { href: "/agent/agents", icon: Users, title: "Agents" },
   ];
@@ -114,10 +108,7 @@ export default function AgentLayout({
   const pageTitle = currentPage ? currentPage.title : "Agent Dashboard"; // Fallback title
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("refresh_token");
-    toast.success("Logged out successfully");
-    router.push("/login/agent");
+    logout();
   };
 
   return (
@@ -182,10 +173,10 @@ export default function AgentLayout({
                   {sidebarOpen && (
                     <div className="flex flex-col text-left overflow-hidden">
                       <span className="text-sm font-medium truncate">
-                        {userData?.name || "Agent"}
+                        {String(userData?.name || "Agent")}
                       </span>
                       <span className="text-xs text-gray-500 truncate">
-                        {userData?.email || "agent@example.com"}
+                      {String(userData?.email || "agent@example.com")}
                       </span>
                     </div>
                   )}

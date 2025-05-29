@@ -28,7 +28,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
 
 export default function AdminLayout({
   children,
@@ -42,6 +41,9 @@ export default function AdminLayout({
     email: string;
     initials: string;
   } | null>(null);
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({});
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth("ADMIN");
@@ -88,9 +90,9 @@ export default function AdminLayout({
       title: "Overview",
     },
     {
-      href: "/admin/book-pickup-requests",
+      href: "/admin/pickup-requests",
       icon: ClipboardList,
-      title: "Book Pickup Requests",
+      title: "Pickup Requests",
     },
     {
       href: "/admin/sending",
@@ -112,10 +114,20 @@ export default function AdminLayout({
       icon: Download,
       title: "Receiving",
     },
+    // Deliver parent with sub-items
     {
-      href: "/admin/deliver",
-      icon: Rocket,
       title: "Deliver",
+      icon: Rocket,
+      children: [
+        {
+          href: "/admin/home-deliver",
+          title: "Home Delivery",
+        },
+        {
+          href: "/admin/hub-pickup",
+          title: "Hub Pickup",
+        },
+      ],
     },
     {
       href: "/admin/customers",
@@ -152,7 +164,9 @@ export default function AdminLayout({
         >
           <div className="p-4 flex items-center justify-between h-16">
             {sidebarOpen && (
-              <h2 className="text-xl font-bold whitespace-nowrap">Admin Panel</h2>
+              <h2 className="text-xl font-bold whitespace-nowrap">
+                Admin Panel
+              </h2>
             )}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
@@ -167,25 +181,74 @@ export default function AdminLayout({
           </div>
 
           <nav className="flex-1 overflow-y-auto py-2 px-2">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 rounded-md text-gray-700 hover:bg-gray-100 mb-1 ${
-                  pathname === item.href ? "bg-blue-50 text-blue-600" : ""
-                }`}
-                onClick={() => isMobile && setSidebarOpen(false)}
-              >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                <span
-                  className={`whitespace-nowrap ${
-                    sidebarOpen ? "block" : "hidden"
+            {navItems.map((item) =>
+              !item.children ? (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-md text-gray-700 hover:bg-gray-100 mb-1 ${
+                    pathname === item.href ? "bg-blue-50 text-blue-600" : ""
                   }`}
+                  onClick={() => isMobile && setSidebarOpen(false)}
                 >
-                  {item.title}
-                </span>
-              </Link>
-            ))}
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span
+                    className={`whitespace-nowrap ${
+                      sidebarOpen ? "block" : "hidden"
+                    }`}
+                  >
+                    {item.title}
+                  </span>
+                </Link>
+              ) : (
+                <div key={item.title}>
+                  <button
+                    onClick={() =>
+                      setExpandedSections((prev) => ({
+                        ...prev,
+                        [item.title]: !prev[item.title],
+                      }))
+                    }
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-md text-gray-700 mb-1 ${
+                      sidebarOpen ? "hover:bg-gray-100" : ""
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    {sidebarOpen && (
+                      <>
+                        <span className="flex-1 text-left font-semibold">
+                          {item.title}
+                        </span>
+                        <ChevronRight
+                          className={`h-4 w-4 transition-transform ${
+                            expandedSections[item.title] ? "rotate-90" : ""
+                          }`}
+                        />
+                      </>
+                    )}
+                  </button>
+                  {/* Sub-items */}
+                  {sidebarOpen && expandedSections[item.title] && (
+                    <div className="mt-1 space-y-1">
+                      {item.children.map((sub) => (
+                        <Link
+                          key={sub.href}
+                          href={sub.href}
+                          className={`flex items-center gap-3 pl-12 pr-4 py-2 rounded-md text-gray-600 hover:bg-gray-100 text-sm ${
+                            pathname === sub.href
+                              ? "bg-blue-50 text-blue-600 font-semibold"
+                              : ""
+                          }`}
+                          onClick={() => isMobile && setSidebarOpen(false)}
+                        >
+                          <span>{sub.title}</span>
+                        </Link>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            )}
           </nav>
 
           {/* Profile Section */}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { EmailProvider } from "@/contexts/EmailContext";
 
 // Configure Poppins font
 const poppins = Poppins({
@@ -30,7 +31,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${poppins.variable} font-sans antialiased`}>
-        <SidebarProvider>{children}</SidebarProvider>
+        <SidebarProvider>
+          <EmailProvider>{children}</EmailProvider>
+        </SidebarProvider>
         <ToastContainer
           position="top-right"
           autoClose={5000}

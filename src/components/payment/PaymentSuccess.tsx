@@ -1,9 +1,9 @@
 // src/components/PaymentSuccess.tsx
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { PaymentStatus } from '@/types';
+import Link from "next/link";
+import { motion } from "framer-motion";
+import { PaymentStatus } from "@/types";
 
 interface PaymentSuccessProps {
   paymentData: PaymentStatus;
@@ -16,12 +16,12 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -55,12 +55,14 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
             />
           </svg>
         </div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-2">Payment Successful!</h2>
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          Payment Successful!
+        </h2>
         <p className="text-gray-600">
-          Your payment of{' '}
+          Your payment of{" "}
           <span className="font-semibold">
             {paymentData.amount} {paymentData.currency}
-          </span>{' '}
+          </span>{" "}
           has been processed successfully.
         </p>
       </motion.div>
@@ -75,15 +77,19 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
         <h3 className="font-semibold text-lg mb-4 text-gray-800 border-b pb-2">
           Transaction Details
         </h3>
-        
+
         <div className="space-y-4">
           <div className="flex justify-between">
             <span className="text-gray-600">Reference Number:</span>
-            <span className="font-medium text-gray-800">{paymentData.reference}</span>
+            <span className="font-medium text-gray-800">
+              {paymentData.reference}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Transaction ID:</span>
-            <span className="font-medium text-gray-800 break-all">{paymentData.tx_ref}</span>
+            <span className="font-medium text-gray-800 break-all">
+              {paymentData.tx_ref}
+            </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Date & Time:</span>
@@ -100,7 +106,7 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
           <div className="flex justify-between">
             <span className="text-gray-600">Payment Method:</span>
             <span className="font-medium text-gray-800 capitalize">
-              {paymentData.authorization.channel || 'Unknown'}
+              {paymentData.authorization.channel || "Unknown"}
             </span>
           </div>
           <div className="flex justify-between">
@@ -124,11 +130,12 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
         </h3>
         <div className="space-y-2">
           <p className="text-gray-700">
-            <span className="font-medium">Name:</span> {paymentData.customer.first_name}{' '}
-            {paymentData.customer.last_name}
+            <span className="font-medium">Name:</span>{" "}
+            {paymentData.customer.first_name} {paymentData.customer.last_name}
           </p>
           <p className="text-gray-700">
-            <span className="font-medium">Email:</span> {paymentData.customer.email}
+            <span className="font-medium">Email:</span>{" "}
+            {paymentData.customer.email}
           </p>
         </div>
       </motion.div>
@@ -161,7 +168,7 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
           Print Receipt
         </button>
         <Link
-          href="/"
+          href="/customer/tracking"
           className="px-6 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
         >
           <svg
@@ -175,10 +182,10 @@ export default function PaymentSuccess({ paymentData }: PaymentSuccessProps) {
               strokeLinecap="round"
               strokeLinejoin="round"
               strokeWidth={2}
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+              d="M9 20l-5.447-2.724A2 2 0 013 15.382V6a2 2 0 012-2h14a2 2 0 012 2v9.382a2 2 0 01-0.553 1.894L15 20m-6 0V10m6 10V10"
             />
           </svg>
-          Return Home
+          Track Package
         </Link>
       </motion.div>
 

@@ -42,7 +42,7 @@ export default function CustomersPage() {
     const fetchUsers = async () => {
       const token = localStorage.getItem("token");
       try {
-        const response = await fetch("http://localhost:3001/users", {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -69,7 +69,7 @@ export default function CustomersPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`http://localhost:3001/users/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

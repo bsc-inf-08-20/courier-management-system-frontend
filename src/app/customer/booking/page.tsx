@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@/hooks/useAuth";
 import { MapComponent } from "@/components/MapComponent";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +19,6 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Package, MapPin, Clock, User } from "lucide-react";
-import { AuthProvider } from "@/context/AuthContext";
 import {
   Accordion,
   AccordionContent,
@@ -28,11 +26,20 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Progress } from "@/components/ui/progress";
+import {
+  calculateDeliveryFee,
+  getFeeBreakdown,
+} from "@/utils/paymentCalculator";
 
 const HUB_LOCATIONS = [
   { name: "Mzuzu", coordinates: { lat: -11.4656, lng: 34.0216 } },
   { name: "Lilongwe", coordinates: { lat: -13.9626, lng: 33.7741 } },
   { name: "Blantyre", coordinates: { lat: -15.7861, lng: 35.0058 } },
+  { name: "Zomba", coordinates: { lat: -15.3833, lng: 35.3333 } },
+  { name: "Karonga", coordinates: { lat: -9.95, lng: 33.9333 } },
+  { name: "Kasungu", coordinates: { lat: -13.0333, lng: 33.4333 } },
+  { name: "Mangochi", coordinates: { lat: -14.4667, lng: 35.2833 } },
+  { name: "Salima", coordinates: { lat: -13.7667, lng: 34.5167 } },
 ];
 
 const TIME_WINDOWS = [
@@ -45,7 +52,38 @@ type FormSection = {
   label: string;
 };
 
-const validateSection = (section: string, formData: any): boolean => {
+interface FormData {
+  packet_description: string;
+  packet_weight: string;
+  packet_category: string;
+  instructions: string;
+  delivery_type: string;
+  pickup_city: string;
+  pickup_address: string;
+  sender: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  origin_coordinates: { lat: number; lng: number };
+  receiver: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  destination_hub: string;
+  destination_address: string;
+  destination_coordinates: { lat: number; lng: number };
+}
+
+interface UserData {
+  name: string;
+  email: string;
+  phone_number: string;
+  city: string;
+}
+
+const validateSection = (section: string, formData: FormData): boolean => {
   switch (section) {
     case "package":
       return !!(
@@ -71,7 +109,8 @@ const validateSection = (section: string, formData: any): boolean => {
       );
     case "pickup":
       return !!(
-        formData.pickup_address?.trim() && // Check if address exists and is not empty
+        formData.pickup_city &&
+        formData.pickup_address &&
         formData.origin_coordinates &&
         formData.origin_coordinates.lat !== 0 &&
         formData.origin_coordinates.lng !== 0
@@ -89,23 +128,24 @@ export default function BookingPageWrapper() {
 
 function CustomerBooking() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [userData, setUserData] = useState<any>(null);
+  const [loading] = useState(false);
+  const [, setUserData] = useState<UserData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTimeWindow, setSelectedTimeWindow] = useState<string>("");
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     packet_description: "",
     packet_weight: "",
     packet_category: "",
     instructions: "",
+    pickup_city: "",
+    pickup_address: "",
     delivery_type: "pickup",
     sender: {
       name: "",
       email: "",
       phone_number: "",
     },
-    pickup_address: "",
     origin_coordinates: { lat: 0, lng: 0 },
     receiver: {
       name: "",
@@ -131,18 +171,21 @@ function CustomerBooking() {
     const fetchUserData = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:3001/users/me-data", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!response.ok) throw new Error("Failed to fetch user data");
 
-        const data = await response.json();
+        const data: UserData = await response.json();
         setUserData(data);
 
-        // Pre-fill sender information
+        // Pre-fill sender information and pickup city
         setFormData((prev) => ({
           ...prev,
           sender: {
@@ -150,7 +193,7 @@ function CustomerBooking() {
             email: data.email,
             phone_number: data.phone_number,
           },
-          pickup_address: data.city,
+          pickup_city: data.city,
           origin_coordinates: getCityCoordinates(data.city),
         }));
       } catch (error) {
@@ -174,71 +217,102 @@ function CustomerBooking() {
       return;
     }
 
-    setLoading(true);
-    const [startTime, endTime] =
-      TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)?.value || [];
+    const deliveryFee = calculateDeliveryFee(
+      formData.pickup_city,
+      formData.destination_hub,
+      formData.packet_category,
+      formData.delivery_type === "delivery",
+      parseFloat(formData.packet_weight)
+    );
 
-    const dateStr = format(selectedDate, "yyyy-MM-dd");
-    const requestData = {
-      ...formData,
-      packet_weight: parseFloat(formData.packet_weight),
-      pickup_window: {
-        start: `${dateStr}T${startTime}`,
-        end: `${dateStr}T${endTime}`,
-      },
-    };
+    const feeBreakdown = getFeeBreakdown(
+      formData.pickup_city,
+      formData.destination_hub,
+      formData.packet_category,
+      formData.delivery_type === "delivery",
+      parseFloat(formData.packet_weight)
+    );
 
     try {
-      const response = await fetch("http://localhost:3001/pickup/request", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(requestData),
-      });
+      // Create booking with origin_city and origin_address mapped from pickup_city and pickup_address
+      const bookingResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/request`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            ...formData,
+            origin_city: formData.pickup_city,
+            origin_address: formData.pickup_address,
+            packet_weight: parseFloat(formData.packet_weight),
+            pickup_window: {
+              start: `${format(selectedDate, "yyyy-MM-dd")}T${
+                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                  ?.value[0]
+              }`,
+              end: `${format(selectedDate, "yyyy-MM-dd")}T${
+                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                  ?.value[1]
+              }`,
+            },
+            delivery_fee: deliveryFee,
+          }),
+        }
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to create booking");
-      }
+      if (!bookingResponse.ok) throw new Error("Booking creation failed");
 
-      toast.success("Booking created successfully!");
-      router.push("/customer/tracking");
+      const bookingData = await bookingResponse.json();
+
+      // Redirect to payment page with all necessary data
+      router.push(
+        `/customer/payment?${new URLSearchParams({
+          booking_id: bookingData.id,
+          amount: deliveryFee.toString(),
+          email: formData.sender.email,
+          name: formData.sender.name,
+          origin_city: formData.pickup_city,
+          destination: formData.destination_hub,
+          category: formData.packet_category,
+          delivery_type: formData.delivery_type,
+          weight: formData.packet_weight,
+          ...Object.fromEntries(
+            Object.entries(feeBreakdown).map(([key, value]) => [
+              key,
+              value.toString(),
+            ])
+          ),
+        })}`
+      );
     } catch (error) {
       console.error("Booking error:", error);
       toast.error("Failed to create booking");
-    } finally {
-      setLoading(false);
     }
   };
 
+  // Fix the validation effect to prevent infinite loops
   useEffect(() => {
-    const updatedSections = Object.keys(sections).reduce((acc, section) => {
-      const isComplete = validateSection(section, formData);
-      console.log(`Section ${section} validation:`, {
-        isComplete,
-        data:
-          section === "pickup"
-            ? {
-                address: formData.pickup_address,
-                coordinates: formData.origin_coordinates,
-              }
-            : null,
-      });
+    // Create a new object instead of mutating the existing one
+    const updatedSections = {} as { [key: string]: FormSection };
 
-      return {
-        ...acc,
-        [section]: {
-          ...sections[section],
-          isComplete,
-        },
+    // Validate each section
+    Object.keys(sections).forEach((section) => {
+      updatedSections[section] = {
+        ...sections[section],
+        isComplete:
+          section === "time"
+            ? !!(selectedDate && selectedTimeWindow)
+            : validateSection(section, formData),
       };
-    }, sections);
+    });
 
-    // Update time section separately
-    updatedSections.time.isComplete = !!(selectedDate && selectedTimeWindow);
-
-    setSections(updatedSections);
+    // Only update state if there are actual changes
+    if (JSON.stringify(updatedSections) !== JSON.stringify(sections)) {
+      setSections(updatedSections);
+    }
   }, [formData, selectedDate, selectedTimeWindow]);
 
   const progress = useMemo(() => {
@@ -362,24 +436,61 @@ function CustomerBooking() {
                 </AccordionTrigger>
                 <AccordionContent>
                   <div className="space-y-4">
-                    <MapComponent
-                      initialCenter={{ lat: -13.9626, lng: 33.7741 }}
-                      onLocationSelect={(coords) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          origin_coordinates: coords,
-                        }))
-                      }
-                      selectedCoordinates={formData.origin_coordinates}
-                      label="Select pickup location"
-                      onAddressChange={(address) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          pickup_address: address,
-                        }))
-                      }
-                      addressInputValue={formData.pickup_address}
-                    />
+                    <div className="flex items-center gap-2">
+                      <MapPin className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold">Pickup Location</h3>
+                    </div>
+                    <Separator />
+
+                    {/* Origin City Selection */}
+                    <div>
+                      <Label>Pickup City</Label>
+                      <Select
+                        value={formData.pickup_city}
+                        onValueChange={(value) => {
+                          const coords = getCityCoordinates(value);
+                          setFormData((prev) => ({
+                            ...prev,
+                            pickup_city: value,
+                            origin_coordinates: coords,
+                          }));
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select pickup city" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HUB_LOCATIONS.map((hub) => (
+                            <SelectItem key={hub.name} value={hub.name}>
+                              {hub.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Specific Pickup Location Map */}
+                    <div className="space-y-4">
+                      <Label>Pickup Address</Label>
+                      <MapComponent
+                        initialCenter={formData.origin_coordinates}
+                        onLocationSelect={(coords) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            origin_coordinates: coords,
+                          }))
+                        }
+                        selectedCoordinates={formData.origin_coordinates}
+                        label="Select pickup address"
+                        onAddressChange={(address) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            pickup_address: address,
+                          }))
+                        }
+                        addressInputValue={formData.pickup_address}
+                      />
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>

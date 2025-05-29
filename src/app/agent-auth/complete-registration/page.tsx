@@ -6,7 +6,7 @@ import * as Yup from "yup";
 import axios from "axios";
 
 // Define API endpoint
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api/agents/register";
+const API_BASE = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:5000/api/agents/register";
 
 // Define types for form values
 interface FormValues {
@@ -60,7 +60,7 @@ const AgentFinalRegistration = () => {
         formData.append("driversLicense", values.driversLicense);
       }
 
-      await axios.post(API_URL, formData, {
+      await axios.post(API_BASE, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

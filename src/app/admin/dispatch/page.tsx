@@ -41,7 +41,7 @@ const DispatchPacketsPage = () => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const adminRes = await fetch("http://localhost:3001/users/me", {
+        const adminRes = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!adminRes.ok) throw new Error("Failed to fetch admin data");
@@ -49,13 +49,13 @@ const DispatchPacketsPage = () => {
         setAdminCity(adminData.city || "");
 
         const [vehiclesRes, readyPacketsRes, inTransitRes] = await Promise.all([
-          fetch(`http://localhost:3001/packets/available-vehicles?city=${adminData.city}`, {
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/available-vehicles?city=${adminData.city}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`http://localhost:3001/packets/at-origin-hub?city=${adminData.city}`, {
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/at-origin-hub?city=${adminData.city}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
-          fetch(`http://localhost:3001/packets/in-transit?origin=${adminData.city}`, {
+          fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/packets/in-transit?origin=${adminData.city}`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
         ]);

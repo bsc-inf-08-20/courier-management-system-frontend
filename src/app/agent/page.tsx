@@ -29,8 +29,12 @@ export default function AgentDashboard() {
   const [pickups, setPickups] = useState<Pickup[]>([]);
 
   useEffect(() => {
-    const loadPickups = async () => setPickups(await fetchData<Pickup>('/api/pickups'));
-    loadPickups();
+    const loadPickedParcels = async () => {
+      const pickedParcels = await fetchData<Pickup>('/api/agent/delivery-assignments');
+      setPickups(pickedParcels);
+    };
+
+    loadPickedParcels();
   }, []);
 
   const filteredData = pickups.filter((item) => item.id.includes(searchQuery));
@@ -63,7 +67,7 @@ export default function AgentDashboard() {
 
       {/* Pickups & Deliveries Table */}
       <div className="p-4 border rounded-lg shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Recent Pickups & Deliveries (Last 24 Hours)</h2>
+        <h2 className="text-xl font-semibold mb-4">Parcels Picked by Agent</h2>
         <Table>
           <TableHeader>
             <TableRow>
