@@ -21,9 +21,6 @@ interface PacketsToBeDeliveredProps {
 
 const PacketsToBeDelivered: React.FC<PacketsToBeDeliveredProps> = ({
   packets,
-  adminCity,
-  onUnassignAgent,
-  onReassignAgent,
   setReassignPacketId,
   setAgentToRemove,
 }) => {

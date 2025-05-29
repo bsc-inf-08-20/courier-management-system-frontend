@@ -82,7 +82,7 @@ export default function Home() {
             >
               <div className="flex items-center space-x-2 bg-yellow-400/20 px-4 py-2 rounded-full">
                 <Star className="h-5 w-5 text-yellow-300 fill-current" />
-                <span className="text-sm font-medium">Malawi's #1 Courier Service</span>
+                <span className="text-sm font-medium">Malawi&apos;s #1 Courier Service</span>
                 <Star className="h-5 w-5 text-yellow-300 fill-current" />
               </div>
             </motion.div>
@@ -176,7 +176,7 @@ export default function Home() {
               Why Choose <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">Our Service?</span>
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              Experience the difference with Malawi's most advanced courier platform
+              Experience the difference with Malawi&apos;s most advanced courier platform
             </p>
           </motion.div>
 

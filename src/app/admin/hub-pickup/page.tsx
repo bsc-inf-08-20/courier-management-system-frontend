@@ -17,7 +17,7 @@ import PickedUpTable from "@/components/admin/hub/PickedUpTable";
 
 export default function HubPickupPage() {
   const [packets, setPackets] = useState<Packet[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [adminCity, setAdminCity] = useState("");
   const [currentPacketId, setCurrentPacketId] = useState<number | null>(null);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);

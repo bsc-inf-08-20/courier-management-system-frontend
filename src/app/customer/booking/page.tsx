@@ -211,87 +211,105 @@ function CustomerBooking() {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedDate || !selectedTimeWindow) {
-      toast.error("Please select pickup date and time window");
-      return;
-    }
+  e.preventDefault();
+  if (!selectedDate || !selectedTimeWindow) {
+    toast.error("Please select pickup date and time window");
+    return;
+  }
 
-    const deliveryFee = calculateDeliveryFee(
-      formData.pickup_city,
-      formData.destination_hub,
-      formData.packet_category,
-      formData.delivery_type === "delivery",
-      parseFloat(formData.packet_weight)
+  const deliveryFee = calculateDeliveryFee(
+    formData.pickup_city,
+    formData.destination_hub,
+    formData.packet_category,
+    formData.delivery_type === "delivery",
+    parseFloat(formData.packet_weight)
+  );
+
+  const feeBreakdown = getFeeBreakdown(
+    formData.pickup_city,
+    formData.destination_hub,
+    formData.packet_category,
+    formData.delivery_type === "delivery",
+    parseFloat(formData.packet_weight)
+  );
+
+  try {
+    // Create booking
+    const bookingResponse = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/request`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({
+          ...formData,
+          origin_city: formData.pickup_city,
+          origin_address: formData.pickup_address,
+          packet_weight: parseFloat(formData.packet_weight),
+          pickup_window: {
+            start: `${format(selectedDate, "yyyy-MM-dd")}T${
+              TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                ?.value[0]
+            }`,
+            end: `${format(selectedDate, "yyyy-MM-dd")}T${
+              TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
+                ?.value[1]
+            }`,
+          },
+          delivery_fee: deliveryFee,
+        }),
+      }
     );
 
-    const feeBreakdown = getFeeBreakdown(
-      formData.pickup_city,
-      formData.destination_hub,
-      formData.packet_category,
-      formData.delivery_type === "delivery",
-      parseFloat(formData.packet_weight)
-    );
+    if (!bookingResponse.ok) throw new Error("Booking creation failed");
 
+    const bookingData = await bookingResponse.json();
+
+    // Send booking confirmation email to sender
     try {
-      // Create booking with origin_city and origin_address mapped from pickup_city and pickup_address
-      const bookingResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/pickup/request`,
+      await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/booking-confirmation`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-          body: JSON.stringify({
-            ...formData,
-            origin_city: formData.pickup_city,
-            origin_address: formData.pickup_address,
-            packet_weight: parseFloat(formData.packet_weight),
-            pickup_window: {
-              start: `${format(selectedDate, "yyyy-MM-dd")}T${
-                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
-                  ?.value[0]
-              }`,
-              end: `${format(selectedDate, "yyyy-MM-dd")}T${
-                TIME_WINDOWS.find((tw) => tw.label === selectedTimeWindow)
-                  ?.value[1]
-              }`,
-            },
-            delivery_fee: deliveryFee,
-          }),
+          body: JSON.stringify({ pickupRequestId: bookingData.id }),
         }
       );
-
-      if (!bookingResponse.ok) throw new Error("Booking creation failed");
-
-      const bookingData = await bookingResponse.json();
-
-      // Redirect to payment page with all necessary data
-      router.push(
-        `/customer/payment?${new URLSearchParams({
-          booking_id: bookingData.id,
-          amount: deliveryFee.toString(),
-          email: formData.sender.email,
-          name: formData.sender.name,
-          origin_city: formData.pickup_city,
-          destination: formData.destination_hub,
-          category: formData.packet_category,
-          delivery_type: formData.delivery_type,
-          weight: formData.packet_weight,
-          ...Object.fromEntries(
-            Object.entries(feeBreakdown).map(([key, value]) => [
-              key,
-              value.toString(),
-            ])
-          ),
-        })}`
-      );
-    } catch (error) {
-      console.error("Booking error:", error);
-      toast.error("Failed to create booking");
+    } catch (err) {
+      // Optionally show a toast or log error
+      console.error("Failed to send booking confirmation email:", err);
     }
-  };
+
+    // Redirect to payment page
+    router.push(
+      `/customer/payment?${new URLSearchParams({
+        booking_id: bookingData.id,
+        amount: deliveryFee.toString(),
+        email: formData.sender.email,
+        name: formData.sender.name,
+        origin_city: formData.pickup_city,
+        destination: formData.destination_hub,
+        category: formData.packet_category,
+        delivery_type: formData.delivery_type,
+        weight: formData.packet_weight,
+        ...Object.fromEntries(
+          Object.entries(feeBreakdown).map(([key, value]) => [
+            key,
+            value.toString(),
+          ])
+        ),
+      })}`
+    );
+  } catch (error) {
+    console.error("Booking error:", error);
+    toast.error("Failed to create booking");
+  }
+};
 
   // Fix the validation effect to prevent infinite loops
   useEffect(() => {

@@ -51,7 +51,7 @@ interface Packet {
 
 interface PickupRequest {
   id: number;
-  pickup_address: string;
+  pickup_city: string;
   destination_address: string;
   status: string;
   created_at: string;
@@ -126,7 +126,7 @@ const UnassignedRequests = ({
                   )
                 }
               >
-                <TableCell>{request.pickup_address}</TableCell>
+                <TableCell>{request.pickup_city}</TableCell>
                 <TableCell>{request.destination_address}</TableCell>
                 <TableCell>
                   {request.customer.name} <br />
@@ -543,7 +543,7 @@ const BookPickupRequestsPage = () => {
           <TableBody>
             {filteredRequests.map((request) => (
               <TableRow key={request.id} className="hover:bg-gray-100">
-                <TableCell>{request.pickup_address}</TableCell>
+                <TableCell>{request.pickup_city}</TableCell>
                 <TableCell>{request.destination_address}</TableCell>
                 <TableCell>
                   {request.customer.name} <br />

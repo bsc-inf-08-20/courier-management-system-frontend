@@ -4,15 +4,19 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import Navbar from "@/components/customer/Navbar";
 import AuthGuard from "@/components/AuthGuard"; // adjust path if needed
 //import { UserRole } from "@/hooks/useAuth";
 
 export default function Profile() {
   const { decodedToken } = useAuth("USER");
-  const [formData, setFormData] = useState({
-    name: decodedToken?.name || "",
-    email: decodedToken?.email || "",
+  const [formData, setFormData] = useState<{
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+  }>({
+    name: decodedToken?.name?.toString() || "",
+    email: decodedToken?.email?.toString() || "",
     phone: "",
     address: "",
   });
@@ -21,8 +25,8 @@ export default function Profile() {
     if (decodedToken) {
       setFormData((prev) => ({
         ...prev,
-        name: decodedToken.name,
-        email: decodedToken.email,
+        name: decodedToken.name?.toString() || "",
+        email: decodedToken.email?.toString() || "",
       }));
     }
   }, [decodedToken]);

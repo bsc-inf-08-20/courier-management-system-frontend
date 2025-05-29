@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect, useRef } from "react";
@@ -40,8 +41,30 @@ const HUB_LOCATIONS = [
   { name: "Dedza", coordinates: { lat: -14.1667, lng: 34.3333 } },
 ];
 
+interface PacketSummary {
+  trackingId: string;
+  description: string;
+  weight: string;
+  category: string;
+  sender: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  receiver: {
+    name: string;
+    email: string;
+    phone_number: string;
+  };
+  origin_city: string;
+  destination_hub: string;
+  delivery_type: string;
+  totalAmount: number;
+  created_at: string;
+}
+
 export default function CreatePacketPage() {
-  const [responseData, setResponseData] = useState<any>(null);
+  const [, setResponseData] = useState<any>(null);
   const [formData, setFormData] = useState({
     description: "",
     weight: "",
@@ -73,7 +96,9 @@ export default function CreatePacketPage() {
   const [, setMarker] = useState<google.maps.Marker | null>(null);
   const mapRef = useRef<HTMLDivElement>(null);
   const qrCodeRef = useRef<HTMLDivElement>(null);
-  const [packetSummary, setPacketSummary] = useState<any>(null);
+  const [packetSummary, setPacketSummary] = useState<PacketSummary | null>(
+    null
+  );
 
   useAuth("ADMIN");
 
@@ -82,11 +107,14 @@ export default function CreatePacketPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/users/me-data", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/users/me-data`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
         if (!res.ok) throw new Error("Failed to fetch admin data");
 
@@ -94,7 +122,6 @@ export default function CreatePacketPage() {
         setAdminCity(data.city || "Unknown City");
         // Store the email
         setAdminEmail(data.email || "Unknown Email");
-        
 
         const cityCoordinates = getCityCoordinates(data.city);
         setFormData((prev) => ({
@@ -235,14 +262,17 @@ export default function CreatePacketPage() {
         status: "at_origin_hub",
       };
 
-      const res = await fetch("http://localhost:3001/packets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(packetData),
-      });
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}:3001/packets`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(packetData),
+        }
+      );
 
       if (!res.ok) {
         const errorData = await res.json();
@@ -269,6 +299,29 @@ export default function CreatePacketPage() {
         created_at: new Date().toLocaleString(),
       };
       setPacketSummary(summary);
+
+      // Send receipt to both sender and receiver
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/send-packet-receipt`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify({
+              ...summary, // your receipt summary object
+              sender: { ...formData.sender },
+              receiver: { ...formData.receiver },
+            }),
+          }
+        );
+        toast.success("Receipt sent to both sender and receiver!");
+      } catch (err) {
+        console.log(err);
+        toast.error("Could not send receipt to emails.");
+      }
 
       // Generate QR code data with all the form data
       setQrCodeData(
@@ -392,57 +445,57 @@ export default function CreatePacketPage() {
     );
   };
 
-  const handleDownloadReceipt = () => {
-    if (!packetSummary) return;
+  //   const handleDownloadReceipt = () => {
+  //     if (!packetSummary) return;
 
-    const receiptContent = `
-COURIER MANAGEMENT SYSTEM
--------------------------
-PACKET RECEIPT
-Date: ${packetSummary.created_at}
+  //     const receiptContent = `
+  // COURIER MANAGEMENT SYSTEM
+  // -------------------------
+  // PACKET RECEIPT
+  // Date: ${packetSummary.created_at}
 
-Packet Details:
-Tracking ID: ${packetSummary.trackingId}
-Description: ${packetSummary.description}
-Weight: ${packetSummary.weight} kg
-Category: ${packetSummary.category}
+  // Packet Details:
+  // Tracking ID: ${packetSummary.trackingId}
+  // Description: ${packetSummary.description}
+  // Weight: ${packetSummary.weight} kg
+  // Category: ${packetSummary.category}
 
-Sender Details:
-Name: ${packetSummary.sender.name}
-Email: ${packetSummary.sender.email}
-Phone: ${packetSummary.sender.phone_number}
+  // Sender Details:
+  // Name: ${packetSummary.sender.name}
+  // Email: ${packetSummary.sender.email}
+  // Phone: ${packetSummary.sender.phone_number}
 
-Receiver Details:
-Name: ${packetSummary.receiver.name}
-Email: ${packetSummary.receiver.email}
-Phone: ${packetSummary.receiver.phone_number}
+  // Receiver Details:
+  // Name: ${packetSummary.receiver.name}
+  // Email: ${packetSummary.receiver.email}
+  // Phone: ${packetSummary.receiver.phone_number}
 
-Location Details:
-Origin: ${packetSummary.origin_city}
-Destination: ${packetSummary.destination_hub}
-Delivery Type: ${
-      packetSummary.delivery_type === "delivery"
-        ? "Home Delivery"
-        : "Hub Pickup"
-    }
+  // Location Details:
+  // Origin: ${packetSummary.origin_city}
+  // Destination: ${packetSummary.destination_hub}
+  // Delivery Type: ${
+  //       packetSummary.delivery_type === "delivery"
+  //         ? "Home Delivery"
+  //         : "Hub Pickup"
+  //     }
 
-PAYMENT DETAILS
--------------------------
-Total Amount: MWK ${packetSummary.totalAmount}
+  // PAYMENT DETAILS
+  // -------------------------
+  // Total Amount: MWK ${packetSummary.totalAmount}
 
-Thank you for using our service!
-`;
+  // Thank you for using our service!
+  // `;
 
-    const blob = new Blob([receiptContent], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `packet-receipt-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
+  //     const blob = new Blob([receiptContent], { type: "text/plain" });
+  //     const url = URL.createObjectURL(blob);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = `packet-receipt-${Date.now()}.txt`;
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     document.body.removeChild(a);
+  //     URL.revokeObjectURL(url);
+  //   };
 
   const handleDownloadPdfReceipt = () => {
     if (!packetSummary) return;

@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,14 +12,11 @@ import {
   Clock, 
   CheckCircle, 
   Plus,
-  Search,
   Bell,
   Star,
   DollarSign,
-  Calendar,
   User,
   Eye,
-  Zap,
   Shield,
   Award,
   Phone,
@@ -32,8 +28,7 @@ import {
 import { motion } from "framer-motion";
 
 export default function CustomerDashboard() {
-  const { isAuthenticated, userRole, isLoading } = useAuth("USER");
-  const [activeTab, setActiveTab] = useState("overview");
+  const {  isLoading } = useAuth("USER");
 
   // Mock customer data - replace with real data from your API
   const customerData = {
@@ -129,12 +124,12 @@ export default function CustomerDashboard() {
     );
   }
 
-  interface StatusColorMap {
-    Delivered: string;
-    'In Transit': string;
-    'Pending Pickup': string;
-    [key: string]: string;
-  }
+  // interface StatusColorMap {
+  //   Delivered: string;
+  //   'In Transit': string;
+  //   'Pending Pickup': string;
+  //   [key: string]: string;
+  // }
 
   const getStatusColor = (status: string): string => {
     switch (status) {
@@ -428,7 +423,7 @@ export default function CustomerDashboard() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <p className="text-sm text-green-700">
-                    Need help with your deliveries? We're here for you 24/7
+                    Need help with your deliveries? We&apos;re here for you 24/7
                   </p>
                   <div className="space-y-2">
                     <Button variant="ghost" className="w-full justify-start text-green-700 hover:bg-green-100">

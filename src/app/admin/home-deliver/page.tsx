@@ -41,7 +41,7 @@ const DeliveryPage = () => {
   const [reassignPacketId, setReassignPacketId] = useState<number | null>(null);
   const [agentToRemove, setAgentToRemove] = useState<number | null>(null);
   const [expandedPacket, setExpandedPacket] = useState<number | null>(null);
-  const [assignments, setAssignments] = useState<{
+  const [, setAssignments] = useState<{
     [key: number]: number | null;
   }>({});
 
