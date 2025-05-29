@@ -1,48 +1,70 @@
-// /src/components/customer/Navbar.tsx
 "use client";
-import { Button } from "@/components/ui/button";
+
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  BookOpen,
+  Package,
+  User,
+  LogOut,
+} from "lucide-react";
+
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button"; // Add this if using shadcn button
+
+const navItems = [
+  {
+    href: "/customer/booking",
+    icon: BookOpen,
+    title: "Book Pickup",
+  },
+  {
+    href: "/customer/tracking",
+    icon: Package,
+    title: "Track Packets",
+  },
+];
 
 export default function Navbar() {
   const router = useRouter();
-  const [user, setUser] = useState<{ name: string } | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const pathname = usePathname();
+  const [user, setUser] = useState<{
+    name: string;
+    email: string;
+    initials: string;
+  } | null>(null);
 
   useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setIsAuthenticated(false);
-        return;
-      }
-
+    const token = localStorage.getItem("token");
+    if (token) {
       try {
         const payload = JSON.parse(atob(token.split(".")[1]));
-        setUser({ name: payload.name });
-        setIsAuthenticated(true);
+        setUser({
+          name: payload.name || "Customer",
+          email: payload.email || "",
+          initials: payload.name
+            ? payload.name
+                .split(" ")
+                .map((n: string) => n[0])
+                .join("")
+            : "CU",
+        });
       } catch (error) {
         console.error("Error parsing token:", error);
-        setIsAuthenticated(false);
       }
-    };
-
-    checkAuth();
-    window.addEventListener("storage", checkAuth);
-    return () => window.removeEventListener("storage", checkAuth);
+    }
   }, []);
 
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("refresh_token");
-    setIsAuthenticated(false);
     setUser(null);
     router.push("/customer/auth");
   };
@@ -50,37 +72,56 @@ export default function Navbar() {
   return (
     <nav className="w-full bg-white shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-        <Link href="/" className="text-2xl font-bold text-gray-800">
+        <Link href="/" className="text-xl font-bold text-gray-800">
           CMIS
         </Link>
-        <div className="space-x-4">
-          <Link href="/">
-            <Button variant="ghost">Home</Button>
-          </Link>
-          <Link href="/customer/booking">
-            <Button variant="ghost">Book a Courier</Button>
-          </Link>
-          <Link href="/customer/tracking">
-            <Button variant="ghost">Track Package</Button>
-          </Link>
-          {isAuthenticated ? (
+
+        <div className="flex items-center gap-6 ml-auto">
+          {/* Navigation Links */}
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md ${
+                pathname === item.href
+                  ? "text-blue-600 bg-blue-50"
+                  : "text-gray-700 hover:text-blue-600 hover:bg-blue-50"
+              }`}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.title}
+            </Link>
+          ))}
+
+          {/* Auth Section */}
+          {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center"
-                >
-                  {user?.name.charAt(0).toUpperCase()}
-                </Button>
+                <button className="flex items-center gap-2 p-2 rounded-full hover:bg-gray-100">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src="" alt={user.name} />
+                    <AvatarFallback>{user.initials}</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium text-gray-700">
+                    {user.name}
+                  </span>
+                </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <Link href="/customer/dashboard">Dashboard</Link>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-4 py-2"
+                  onClick={() => router.push("/customer/profile")}
+                >
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link href="/customer/profile">Profile</Link>
+                <DropdownMenuItem
+                  className="flex items-center gap-2 px-4 py-2 text-red-600"
+                  onClick={logout}
+                >
+                  <LogOut className="h-4 w-4" />
+                  <span>Logout</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={logout}>Logout</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
