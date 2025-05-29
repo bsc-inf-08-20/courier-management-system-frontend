@@ -66,6 +66,7 @@ export default function CreatePacketPage() {
   });
   const [loading, setLoading] = useState(false);
   const [adminCity, setAdminCity] = useState("");
+  const [adminEmail, setAdminEmail] = useState<string>("Admin"); // State to store admin email
   const [qrCodeOpen, setQrCodeOpen] = useState(false);
   const [qrCodeData, setQrCodeData] = useState<string | null>(null);
   const [, setMap] = useState<google.maps.Map | null>(null);
@@ -81,7 +82,7 @@ export default function CreatePacketPage() {
       setLoading(true);
       try {
         const token = localStorage.getItem("token");
-        const res = await fetch("http://localhost:3001/users/me", {
+        const res = await fetch("http://localhost:3001/users/me-data", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -91,6 +92,9 @@ export default function CreatePacketPage() {
 
         const data = await res.json();
         setAdminCity(data.city || "Unknown City");
+        // Store the email
+        setAdminEmail(data.email || "Unknown Email");
+        
 
         const cityCoordinates = getCityCoordinates(data.city);
         setFormData((prev) => ({
@@ -416,7 +420,11 @@ Phone: ${packetSummary.receiver.phone_number}
 Location Details:
 Origin: ${packetSummary.origin_city}
 Destination: ${packetSummary.destination_hub}
-Delivery Type: ${packetSummary.delivery_type === "delivery" ? "Home Delivery" : "Hub Pickup"}
+Delivery Type: ${
+      packetSummary.delivery_type === "delivery"
+        ? "Home Delivery"
+        : "Hub Pickup"
+    }
 
 PAYMENT DETAILS
 -------------------------
@@ -457,7 +465,7 @@ Thank you for using our service!
     doc.setFontSize(12);
     doc.text("Packet Details:", 20, 50);
     doc.setFontSize(10);
-    doc.text(`Tracking ID: ${packetSummary.trackingId || 'N/A'}`, 25, 60);
+    doc.text(`Tracking ID: ${packetSummary.trackingId || "N/A"}`, 25, 60);
     doc.text(`Description: ${packetSummary.description}`, 25, 70);
     doc.text(`Weight: ${packetSummary.weight} kg`, 25, 80);
     doc.text(`Category: ${packetSummary.category}`, 25, 90);
@@ -486,7 +494,9 @@ Thank you for using our service!
     doc.text(`Destination: ${packetSummary.destination_hub}`, 25, 215);
     doc.text(
       `Delivery Type: ${
-        packetSummary.delivery_type === "delivery" ? "Home Delivery" : "Hub Pickup"
+        packetSummary.delivery_type === "delivery"
+          ? "Home Delivery"
+          : "Hub Pickup"
       }`,
       25,
       225
@@ -502,14 +512,9 @@ Thank you for using our service!
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     const currentDate = new Date().toISOString().split("T")[0];
-    doc.text(
-      `Generated on ${currentDate} by ${
-        process.env.NEXT_PUBLIC_USER_LOGIN || "bsc-inf-08-20"
-      }`,
-      105,
-      295,
-      { align: "center" }
-    );
+    doc.text(`Generated on ${currentDate} by ${adminEmail}`, 105, 295, {
+      align: "center",
+    });
 
     // Save the PDF
     doc.save(`packet-receipt-${Date.now()}.pdf`);

@@ -136,43 +136,57 @@ const ReceivePacketsPage = () => {
   }, []);
 
   const confirmReceipt = async () => {
-    if (!selectedPacket) return;
+  if (!selectedPacket) return;
 
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (!token) {
-      toast.error("Authentication token not found");
-      return;
-    }
+  setLoading(true);
+  const token = localStorage.getItem("token");
+  if (!token) {
+    toast.error("Authentication token not found");
+    return;
+  }
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${selectedPacket}/destination-hub-confirm`,
-        {
-          method: "PATCH",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to confirm receipt");
+  try {
+    // 1. Confirm at hub
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/packets/${selectedPacket}/destination-hub-confirm`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
       }
+    );
 
-      toast.success("Packet received successfully");
-      setPackets(packets.filter((p) => p.id !== selectedPacket));
-      setSelectedPacket(null);
-    } catch (error) {
-      console.error("Receipt confirmation error:", error);
-      toast.error(getErrorMessage(error));
-    } finally {
-      setLoading(false);
-      setShowConfirmationDialog(false);
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Failed to confirm receipt");
     }
-  };
+
+    // 2. Send notification to receiver
+    await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/packets/notifications/arrival-at-hub`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ packetId: selectedPacket }),
+      }
+    );
+
+    toast.success("Packet received successfully and receiver notified!");
+    setPackets(packets.filter((p) => p.id !== selectedPacket));
+    setSelectedPacket(null);
+  } catch (error) {
+    console.error("Receipt confirmation error:", error);
+    toast.error(getErrorMessage(error));
+  } finally {
+    setLoading(false);
+    setShowConfirmationDialog(false);
+  }
+};
 
   const formatDate = (dateString?: string | null) => {
     if (!dateString) return "N/A";
