@@ -716,13 +716,8 @@ function CustomerBooking() {
                         <Calendar
                           mode="single"
                           selected={selectedDate}
-                          onSelect={(date: Date | undefined) =>
-                            setSelectedDate(date || undefined)
-                          }
+                          onSelect={(date: Date | undefined) => setSelectedDate(date || undefined)}
                           className="rounded-md border"
-                          disabled={(date) =>
-                            date < new Date() || date > new Date(2025, 11, 31)
-                          }
                         />
                       </div>
                       <div>
