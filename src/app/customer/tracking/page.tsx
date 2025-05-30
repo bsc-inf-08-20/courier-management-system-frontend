@@ -10,7 +10,7 @@ import {
   UserRound,
   ArrowRight,
 } from "lucide-react";
-import { useState } from "react";
+import { JSX, useState } from "react";
 import { motion } from "framer-motion";
 
 interface StatusItem {

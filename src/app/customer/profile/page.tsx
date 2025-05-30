@@ -13,12 +13,14 @@ export default function Profile() {
     name: string;
     email: string;
     phone: string;
-    address: string;
+    city: string;
+    area: string;
   }>({
     name: decodedToken?.name?.toString() || "",
     email: decodedToken?.email?.toString() || "",
-    phone: "",
-    address: "",
+    phone: decodedToken?.phone?.toString() ||"",
+    city:  decodedToken?.city?.toString() ||"",
+    area:  decodedToken?.area?.toString() ||"",
   });
 
   useEffect(() => {
@@ -35,11 +37,35 @@ export default function Profile() {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log("Profile Updated:", formData);
-    // TODO: Add API call to update profile
-  };
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token");
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/users/me`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to update profile");
+    }
+
+    const result = await response.json();
+    console.log("Profile updated:", result);
+    alert("Profile updated successfully!");
+
+  } catch (error) {
+    console.error("Update error:", error);
+    alert("An error occurred while updating your profile.");
+  }
+};
 
   return (
     <AuthGuard requiredRole={"USER"}>
@@ -76,10 +102,19 @@ export default function Profile() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">Address</label>
+              <label className="block text-sm font-medium text-gray-700">City</label>
               <Input
-                name="address"
-                value={formData.address}
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">Area</label>
+              <Input
+                name="area"
+                value={formData.area}
                 onChange={handleChange}
                 className="mt-1"
               />
